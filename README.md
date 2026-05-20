@@ -1,0 +1,1 @@
+# mute-labs-quote-generator

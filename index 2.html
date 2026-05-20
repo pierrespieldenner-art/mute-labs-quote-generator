@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mute-labs — Générateur de Devis</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--sage:#7C9A8E;--sage-light:#A8C4BA;--sage-dark:#4E6B62;--sage-faint:#EEF3F1;--ink:#1A1F1D;--muted:#6B7774;--border:#D5E0DC;--white:#FFFFFF;--amber:#C8870A;--amber-bg:#FFF8ED;--amber-border:#F0D9A0;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:#F2F6F4;color:var(--ink);min-height:100vh;}
+  .app{display:grid;grid-template-columns:400px 1fr;min-height:100vh;}
+  .sidebar{background:var(--white);border-right:1px solid var(--border);padding:20px 20px 32px;display:flex;flex-direction:column;overflow-y:auto;height:100vh;position:sticky;top:0;}
+  .logo{display:flex;flex-direction:column;margin-bottom:14px;}
+  .logo-mark{width:30px;height:30px;background:var(--sage);border-radius:6px;display:flex;align-items:center;justify-content:center;}
+  .logo-mark svg{width:16px;height:16px;fill:white;}
+  .logo-text{font-size:14px;font-weight:700;letter-spacing:-0.02em;}
+  .logo-sub{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;}
+  .lang-bar{display:flex;gap:3px;margin-bottom:16px;background:var(--sage-faint);border-radius:7px;padding:3px;}
+  .lang-btn{flex:1;padding:5px 1px;border:none;background:transparent;border-radius:5px;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .12s;text-align:center;}
+  .lang-btn:hover{background:rgba(124,154,142,.2);color:var(--ink);}
+  .lang-btn.active{background:var(--white);color:var(--sage-dark);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .sec{font-size:9.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 7px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+  label{display:block;font-size:11.5px;font-weight:500;color:var(--muted);margin-bottom:4px;margin-top:10px;}
+  input[type="text"],textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);background:var(--white);outline:none;transition:border-color .15s,box-shadow .15s;}
+  input:focus,textarea:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(124,154,142,.15);}
+  textarea{resize:vertical;min-height:52px;}
+  .lines-container{display:flex;flex-direction:column;gap:10px;}
+  .line-block{border:1px solid var(--border);border-radius:8px;padding:12px;background:#FAFCFB;}
+  .line-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .line-title{font-size:12px;font-weight:700;}
+  .line-remove{font-size:11px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;padding:2px 6px;border-radius:4px;transition:all .12s;}
+  .line-remove:hover{background:#FDECEA;color:#C0392B;}
+  .qty-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+  .qty-btn{width:26px;height:26px;border:1px solid var(--border);border-radius:5px;background:var(--white);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--sage-dark);font-weight:700;transition:all .1s;flex-shrink:0;}
+  .qty-btn:hover{background:var(--sage-faint);border-color:var(--sage);}
+  .qty-display{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;min-width:22px;text-align:center;}
+  .option-row{display:flex;align-items:center;justify-content:space-between;padding:7px 9px;border:1px solid var(--border);border-radius:6px;margin-top:5px;transition:all .12s;user-select:none;}
+  .option-row.clickable{cursor:pointer;}
+  .option-row.clickable:hover{border-color:var(--sage-light);background:var(--sage-faint);}
+  .option-row.active{border-color:var(--sage);background:var(--sage-faint);}
+  .option-row.locked-on{background:#F7FAF9;cursor:default;}
+  .opt-left{display:flex;align-items:center;gap:7px;}
+  .opt-check{width:14px;height:14px;border:1.5px solid var(--border);border-radius:3px;background:var(--white);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+  .option-row.active .opt-check,.option-row.locked-on .opt-check{background:var(--sage);border-color:var(--sage);}
+  .opt-check::after{content:'';width:7px;height:4px;border-left:1.5px solid white;border-bottom:1.5px solid white;transform:rotate(-45deg) translateY(-1px);display:none;}
+  .option-row.active .opt-check::after,.option-row.locked-on .opt-check::after{display:block;}
+  .opt-label{font-size:12px;}
+  .opt-price{font-size:10.5px;font-family:'DM Mono',monospace;color:var(--muted);white-space:nowrap;}
+  .opt-req{font-size:9.5px;color:var(--muted);font-style:italic;}
+  .add-product-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border:1.5px dashed var(--border);border-radius:7px;cursor:pointer;font-size:12.5px;color:var(--muted);background:none;font-family:'DM Sans',sans-serif;width:100%;transition:all .15s;margin-top:4px;}
+  .add-product-btn:hover{border-color:var(--sage);color:var(--sage-dark);background:var(--sage-faint);}
+  .discount-wrap{display:flex;align-items:center;gap:8px;}
+  .discount-wrap input{width:64px;padding:7px 9px;border:1px solid var(--border);border-radius:5px;font-family:'DM Mono',monospace;font-size:13px;text-align:center;outline:none;transition:border-color .15s,box-shadow .15s;}
+  .discount-wrap input:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(124,154,142,.15);}
+  .discount-wrap span{font-size:12px;color:var(--muted);}
+  .disc-row{display:flex;align-items:center;gap:7px;margin-top:4px;}
+  .disc-row input:focus{border-color:var(--sage) !important;box-shadow:0 0 0 3px rgba(124,154,142,.15) !important;outline:none;}
+  .disclaimer{background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:6px;padding:9px 11px;font-size:11px;color:#7A5500;line-height:1.5;margin-top:14px;}
+  .btn-p{margin-top:14px;width:100%;padding:12px;background:var(--sage);color:white;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;transition:background .15s;}
+  .btn-p:hover{background:var(--sage-dark);}
+  .btn-s{margin-top:7px;width:100%;padding:9px;background:var(--white);color:var(--sage-dark);border:1.5px solid var(--sage);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .15s;}
+  .btn-s:hover{background:var(--sage-faint);}
+  .preview{padding:32px 40px;display:flex;flex-direction:column;align-items:center;}
+  .preview-label{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:16px;align-self:flex-start;}
+  /* Quote document — one pager style */
+  .quote-doc{background:var(--white);width:100%;max-width:700px;border-radius:0;box-shadow:0 4px 28px rgba(0,0,0,.09);overflow:hidden;border:1px solid #E0E8E5;}
+  .doc-header{background:#7C9A8E;padding:28px 36px;display:flex;justify-content:space-between;align-items:flex-start;}
+  .doc-logo{font-size:20px;font-weight:700;color:white;letter-spacing:-0.04em;}
+  .doc-logo span{font-weight:300;opacity:.8;}
+  .doc-addr{color:rgba(255,255,255,.75);font-size:10px;margin-top:4px;font-family:'DM Sans',sans-serif;}
+  .doc-badge{background:rgba(255,255,255,.18);color:white;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:20px;margin-top:8px;display:inline-block;font-weight:700;border:1px solid rgba(255,255,255,.35);}
+  .doc-meta{text-align:right;color:rgba(255,255,255,.9);font-size:10.5px;line-height:1.8;font-family:'DM Mono',monospace;}
+  .doc-meta strong{color:white;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:700;display:block;margin-bottom:3px;letter-spacing:-.01em;}
+  .doc-body{padding:28px 36px;}
+  .doc-parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;padding-bottom:22px;border-bottom:2px solid #E8F0ED;}
+  .party h4{font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:#9BB5AE;margin-bottom:6px;font-weight:700;}
+  .party-name{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.02em;margin-bottom:3px;}
+  .party-detail{font-size:11px;color:var(--muted);line-height:1.65;}
+  .note-block{background:#F4F9F7;border-left:3px solid #7C9A8E;padding:11px 14px;font-size:12px;line-height:1.6;margin-bottom:20px;}
+  .conditions-bar{display:flex;margin-bottom:22px;background:#F4F9F7;border-radius:6px;overflow:hidden;border:1px solid #E0EDE8;}
+  .cond-item{flex:1;padding:10px 12px;text-align:center;border-right:1px solid #D8EAE3;}
+  .cond-item:last-child{border-right:none;}
+  .cond-label{font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;color:#7C9A8E;font-weight:700;margin-bottom:4px;}
+  .cond-val{font-size:12px;font-weight:600;color:var(--ink);}
+  .item-name{font-weight:600;color:var(--ink);}
+  .item-desc{font-size:10.5px;color:var(--muted);margin-top:2px;}
+  .mono{font-family:'DM Mono',monospace;font-size:11.5px;}
+  .tag-incl{background:#E8F2EE;color:#4E6B62;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;display:inline-block;border:1px solid #C5DDD5;text-transform:uppercase;letter-spacing:.05em;}
+  .tag-disc{color:#C0392B;font-size:10px;font-family:'DM Mono',monospace;}
+  .items-table{width:100%;border-collapse:collapse;margin-bottom:20px;}
+  .items-table thead tr{background:#7C9A8E;}
+  .items-table th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:white;padding:9px 12px;text-align:left;}
+  .items-table th:nth-child(3),.items-table td:nth-child(3){text-align:center;}
+  .items-table th:last-child,.items-table td:last-child{text-align:right;}
+  .items-table td{padding:10px 12px;font-size:12px;border-bottom:1px solid #EAF0ED;vertical-align:top;color:var(--ink);}
+  .items-table tbody tr:nth-child(even) td{background:#FAFCFB;}
+  .items-table tbody tr:last-child td{border-bottom:none;}
+  .section-divider td{background:#4E6B62;color:white;padding:6px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;}
+  .totals-wrap{display:flex;justify-content:flex-end;padding-top:14px;border-top:2px solid #E0EDE8;margin-top:4px;}
+  .totals{min-width:250px;}
+  .t-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12.5px;}
+  .t-row .lbl{color:var(--muted);}
+  .t-row .amt{font-family:'DM Mono',monospace;font-size:12px;}
+  .t-row.grand{border-top:1.5px solid var(--ink);margin-top:6px;padding-top:8px;}
+  .t-row.grand .lbl{font-weight:700;font-size:14px;color:var(--ink);}
+  .t-row.grand .amt{font-size:17px;font-weight:700;color:#4E6B62;}
+  .doc-footer{padding:16px 36px;background:#7C9A8E;border-top:none;}
+  .doc-footer p{font-size:9.5px;color:rgba(255,255,255,.85);line-height:1.65;font-style:italic;}
+  .doc-footer strong{color:white;font-style:normal;}
+  .empty{text-align:center;padding:64px 24px;color:var(--muted);}
+  .empty-icon{font-size:40px;opacity:.35;margin-bottom:12px;}
+  .empty h3{font-size:16px;font-weight:500;color:var(--ink);opacity:.45;margin-bottom:6px;}
+  .empty p{font-size:13px;opacity:.65;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:100;}
+  .modal{background:var(--white);border-radius:10px;padding:24px;width:360px;box-shadow:0 8px 40px rgba(0,0,0,.15);}
+  .modal h3{font-size:15px;font-weight:700;margin-bottom:14px;}
+  .modal-prod-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:16px;}
+  .modal-prod-card{border:1.5px solid var(--border);border-radius:7px;padding:10px 8px;cursor:pointer;transition:all .15s;text-align:center;user-select:none;}
+  .modal-prod-card:hover{border-color:var(--sage-light);background:var(--sage-faint);}
+  .modal-prod-card.selected{border-color:var(--sage);background:var(--sage-faint);}
+  .modal-btns{display:flex;gap:8px;}
+  .modal-btns button{flex:1;padding:9px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--ink);transition:all .12s;}
+  .modal-btns .confirm{background:var(--sage);color:white;border-color:var(--sage);}
+  .modal-btns .confirm:hover{background:var(--sage-dark);}
+  /* ── PRINT / PDF ── */
+  .btn-pdf{margin-top:7px;width:100%;padding:9px;background:var(--white);color:#C0392B;border:1.5px solid #E8B4B0;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .btn-pdf:hover{background:#FDF2F1;border-color:#C0392B;}
+
+  @media print {
+    @page { margin: 10mm 10mm 10mm 10mm; size: A4; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    .sidebar, .preview-label { display: none !important; }
+    .app { display: block !important; }
+    .preview { padding: 0 !important; display: block !important; }
+    .quote-doc { box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; }
+    /* Force all backgrounds to print */
+    .doc-header { background: #7C9A8E !important; -webkit-print-color-adjust: exact !important; }
+    .doc-footer { background: #7C9A8E !important; -webkit-print-color-adjust: exact !important; }
+    .items-table thead tr { background: #7C9A8E !important; -webkit-print-color-adjust: exact !important; }
+    .section-divider td { background: #4E6B62 !important; -webkit-print-color-adjust: exact !important; }
+    .items-table tbody tr:nth-child(even) td { background: #FAFCFB !important; }
+    .conditions-bar { background: #F4F9F7 !important; page-break-inside: avoid; }
+    .note-block { background: #F4F9F7 !important; }
+    .items-table { page-break-inside: avoid; }
+    .totals-wrap { page-break-inside: avoid; }
+    .doc-parties { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="logo">
+    <img src="data:image/png;base64,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" alt="mute-labs" style="height:26px;width:auto;display:block;">
+    <div class="logo-sub" id="sb-sub" style="margin-top:5px;">Devis rapide</div>
+  </div>
+
+  <div class="lang-bar">
+    <button class="lang-btn active" onclick="setLang('fr',this)">🇫🇷 FR</button>
+    <button class="lang-btn" onclick="setLang('de',this)">🇩🇪 DE</button>
+    <button class="lang-btn" onclick="setLang('en',this)">🇬🇧 EN</button>
+    <button class="lang-btn" onclick="setLang('nl',this)">🇳🇱 NL</button>
+    <button class="lang-btn" onclick="setLang('it',this)">🇮🇹 IT</button>
+    <button class="lang-btn" onclick="setLang('es',this)">🇪🇸 ES</button>
+    <button class="lang-btn" onclick="setLang('ch',this)">🇨🇭 CH</button>
+  </div>
+
+  <div class="sec" id="sec-client">Client</div>
+  <label id="lbl-company">Nom de l'entreprise *</label>
+  <input type="text" id="company" placeholder="ex: Decathlon SAS" oninput="update()">
+  <label id="lbl-contact">Contact (optionnel)</label>
+  <input type="text" id="contact" placeholder="ex: Marie Dupont" oninput="update()">
+  <label id="lbl-date">Date</label>
+  <input type="text" id="quoteDate" oninput="update()">
+
+  <div class="sec" id="sec-products">Produits & options</div>
+  <div class="lines-container" id="lines-container"></div>
+  <button class="add-product-btn" id="btn-add" onclick="openModal()">+ Ajouter un produit</button>
+
+  <div class="sec" id="sec-note">Note personnalisée</div>
+  <textarea id="customNote" oninput="update()" placeholder="ex: Livraison prévue en juin..."></textarea>
+
+  <div class="disclaimer" id="disclaimer">⚠️ <strong>Devis indicatif non contractuel.</strong> Tous les prix sont hors taxes. N° TVA et adresse de livraison à confirmer.</div>
+
+  <button class="btn-p" onclick="update()" id="btn-update">🔄 Mettre à jour</button>
+  <button class="btn-pdf" onclick="exportPDF()" id="btn-pdf">🖨️ Générer le PDF</button>
+</aside>
+
+<main class="preview">
+  <div class="preview-label" id="preview-lbl">Aperçu du devis indicatif</div>
+  <div id="quote-doc" class="quote-doc">
+    <div class="empty"><div class="empty-icon">📄</div><h3 id="empty-h3">Commencez par ajouter un produit</h3><p id="empty-p">Cliquez sur "+ Ajouter un produit".</p></div>
+  </div>
+</main>
+</div>
+
+<div id="modal" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <h3 id="modal-title">Quel produit ajouter ?</h3>
+    <div class="modal-prod-grid" id="modal-grid"></div>
+    <div class="modal-btns">
+      <button onclick="closeModal()" id="modal-cancel">Annuler</button>
+      <button class="confirm" onclick="confirmModal()" id="modal-confirm">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CATALOG — prix & termes officiels par one pager ────────
+const CATALOG = {
+  fr:{
+    SOLO:{name:'SOLO',fullName:'Cabine individuelle SOLO',desc:'Cabine acoustique individuelle — 1 personne',basePrice:2990,delivery:'3–4 semaines',
+      options:[{id:'stool',label:'Tabouret (optionnel)',price:300,locked:false,perUnit:true},{id:'assembly',label:'Montage (optionnel)',price:300,locked:false,perUnit:true},{id:'delivery',label:'Livraison',price:300,locked:true,perUnit:true}]},
+    QUATTRO:{name:'QUATTRO',fullName:'Cabine de réunion QUATTRO',desc:'Cabine acoustique de réunion — 2 à 4 personnes · Table incluse',basePrice:8490,delivery:'4–6 semaines',
+      options:[{id:'benches',label:'Set de 2 bancs (optionnel)',price:700,locked:false,perUnit:true},{id:'screen',label:"Support d'écran (optionnel)",price:400,locked:false,perUnit:true},{id:'assembly',label:'Montage',price:800,locked:true,perUnit:true},{id:'delivery',label:'Livraison',price:700,locked:true,perUnit:true}]},
+    DEEPWORK:{name:'DEEPWORK',fullName:'Cabine DEEPWORK',desc:'Cabine acoustique focus — 1 personne · Bureau réglable inclus',basePrice:8490,delivery:'4–6 semaines',
+      options:[{id:'assembly',label:'Montage',price:800,locked:true,perUnit:true},{id:'delivery',label:'Livraison',price:700,locked:true,perUnit:true}]}
+  },
+  de:{
+    SOLO:{name:'SOLO',fullName:'Telefonbox SOLO',desc:'Akustische Einzelkabine — 1 Person',basePrice:2990,delivery:'2–3 Wochen',
+      options:[{id:'stool',label:'Hocker (optional)',price:300,locked:false,perUnit:true},{id:'assembly',label:'Aufbau (optional)',price:300,locked:false,perUnit:true},{id:'delivery',label:'Versand',price:300,locked:true,perUnit:true}]},
+    QUATTRO:{name:'QUATTRO',fullName:'Meetingbox QUATTRO',desc:'Akustische Meetingkabine — 2 bis 4 Personen · Tisch inklusive',basePrice:8490,delivery:'4–7 Wochen',
+      options:[{id:'benches',label:'Set aus 2 Bänken (optional)',price:700,locked:false,perUnit:true},{id:'screen',label:'Monitorhalterung (optional)',price:400,locked:false,perUnit:true},{id:'assembly',label:'Aufbau',price:800,locked:true,perUnit:true},{id:'delivery',label:'Versand',price:700,locked:true,perUnit:true}]},
+    DEEPWORK:{name:'DEEPWORK',fullName:'DEEPWORKBOX',desc:'Akustische Fokuskabine — 1 Person · Höhenverstellbarer Schreibtisch inklusive',basePrice:8490,delivery:'4–7 Wochen',
+      options:[{id:'assembly',label:'Aufbau',price:800,locked:true,perUnit:true},{id:'delivery',label:'Versand',price:700,locked:true,perUnit:true}]}
+  },
+  en:{
+    SOLO:{name:'SOLO',fullName:'Phone Booth SOLO',desc:'Acoustic individual booth — 1 person',basePrice:2990,delivery:'4 weeks',
+      options:[{id:'stool',label:'Stool (Optional)',price:300,locked:false,perUnit:true},{id:'assembly',label:'Assembly (Optional)',price:300,locked:false,perUnit:true},{id:'delivery',label:'Delivery',price:300,locked:true,perUnit:true}]},
+    QUATTRO:{name:'QUATTRO',fullName:'Meeting Booth QUATTRO',desc:'Acoustic meeting booth — 2 to 4 people · Table included',basePrice:8490,delivery:'8 weeks',
+      options:[{id:'benches',label:'Set of 2 benches (Optional)',price:700,locked:false,perUnit:true},{id:'screen',label:'Screen mount (Optional)',price:400,locked:false,perUnit:true},{id:'assembly',label:'Assembly',price:800,locked:true,perUnit:true},{id:'delivery',label:'Delivery',price:700,locked:true,perUnit:true}]},
+    DEEPWORK:{name:'DEEPWORK',fullName:'DEEPWORK Booth',desc:'Acoustic focus booth — 1 person · Height-adjustable desk included',basePrice:8490,delivery:'8 weeks',
+      options:[{id:'assembly',label:'Assembly',price:800,locked:true,perUnit:true},{id:'delivery',label:'Delivery',price:700,locked:true,perUnit:true}]}
+  },
+  nl:{
+    SOLO:{name:'SOLO',fullName:'Phone Booth SOLO',desc:'Akoestische individuele cabine — 1 persoon',basePrice:2990,delivery:'4 weken',
+      options:[{id:'stool',label:'Krukje (Optioneel)',price:300,locked:false,perUnit:true},{id:'assembly',label:'Montage (Optioneel)',price:300,locked:false,perUnit:true},{id:'delivery',label:'Levering',price:300,locked:true,perUnit:true}]},
+    QUATTRO:{name:'QUATTRO',fullName:'Meeting Booth QUATTRO',desc:'Akoestische vergadercabine — 2 tot 4 personen · Tafel inbegrepen',basePrice:8490,delivery:'8 weken',
+      options:[{id:'benches',label:'Set van bankjes (Optioneel)',price:700,locked:false,perUnit:true},{id:'screen',label:'Beeldschermbevestiging (Optioneel)',price:400,locked:false,perUnit:true},{id:'assembly',label:'Montage',price:800,locked:true,perUnit:true},{id:'delivery',label:'Levering',price:700,locked:true,perUnit:true}]},
+    DEEPWORK:{name:'DEEPWORK',fullName:'DEEPWORK Booth',desc:'Akoestische focuscabine — 1 persoon · In hoogte verstelbaar bureau inbegrepen',basePrice:8490,delivery:'8 weken',
+      options:[{id:'assembly',label:'Montage',price:800,locked:true,perUnit:true},{id:'delivery',label:'Levering',price:700,locked:true,perUnit:true}]}
+  },
+  it:{
+    SOLO:{name:'SOLO',fullName:'Cabina ufficio SOLO',desc:'Cabina acustica individuale — 1 persona',basePrice:2990,delivery:'3–4 settimane',
+      options:[{id:'stool',label:'Sgabello (opzionale)',price:300,locked:false,perUnit:true},{id:'assembly',label:'Montaggio (opzionale)',price:400,locked:false,perUnit:true},{id:'delivery',label:'Consegna',price:400,locked:true,perUnit:true}]},
+    QUATTRO:{name:'QUATTRO',fullName:'Cabina riunione QUATTRO',desc:'Cabina acustica per riunioni — 2–4 persone · Tavolo incluso',basePrice:8490,delivery:'4–7 settimane',
+      options:[{id:'benches',label:'Set di 2 panche (Opzionale)',price:700,locked:false,perUnit:true},{id:'screen',label:'Sostegno per monitor (Opzionale)',price:400,locked:false,perUnit:true},{id:'assembly',label:'Montaggio',price:800,locked:true,perUnit:true},{id:'delivery',label:'Consegna',price:800,locked:true,perUnit:true}]},
+    DEEPWORK:{name:'DEEPWORK',fullName:'Cabina ufficio DEEPWORK',desc:'Cabina acustica focus — 1 persona · Scrivania regolabile inclusa',basePrice:8490,delivery:'4–7 settimane',
+      options:[{id:'assembly',label:'Montaggio',price:800,locked:true,perUnit:true},{id:'delivery',label:'Consegna',price:800,locked:true,perUnit:true}]}
+  },
+  es:{
+    SOLO:{name:'SOLO',fullName:'Cabina telefónica SOLO',desc:'Cabina acústica individual — 1 persona',basePrice:2990,delivery:'2–3 semanas',
+      options:[{id:'stool',label:'Taburete adaptado (opcional)',price:300,locked:false,perUnit:true},{id:'assembly',label:'Montaje (opcional)',price:360,locked:false,perUnit:true},{id:'delivery',label:'Envío',price:440,locked:true,perUnit:true}]},
+    QUATTRO:{name:'QUATTRO',fullName:'Cabina de reuniones QUATTRO',desc:'Cabina acústica de reuniones — 2–4 personas · Mesa incluida',basePrice:8490,delivery:'4–7 semanas',
+      options:[{id:'benches',label:'Bancos a medida (opcional)',price:700,locked:false,perUnit:true},{id:'screen',label:'Soporte para monitor (opcional)',price:400,locked:false,perUnit:true},{id:'assembly',label:'Montaje',price:800,locked:true,perUnit:true},{id:'delivery',label:'Envío',price:800,locked:true,perUnit:true}]},
+    DEEPWORK:{name:'DEEPWORK',fullName:'Cabina de enfoque DEEPWORK',desc:'Cabina acústica de concentración — 1 persona · Escritorio regulable incluido',basePrice:8490,delivery:'4–7 semanas',
+      options:[{id:'assembly',label:'Montaje',price:800,locked:true,perUnit:true},{id:'delivery',label:'Envío',price:800,locked:true,perUnit:true}]}
+  },
+  ch:{
+    SOLO:{name:'SOLO',fullName:'Cabine individuelle SOLO',desc:'Cabine acoustique individuelle — 1 personne',basePrice:3490,delivery:'4 semaines',currency:'CHF',
+      importFee:390,
+      options:[
+        {id:'stool',   label:'Tabouret (optionnel)',          price:300, locked:false, perUnit:true},
+        {id:'assembly',label:'Montage (optionnel)',            price:400, locked:false, perUnit:true},
+        {id:'delivery',label:'Livraison',                     price:400, locked:true,  perUnit:true},
+      ]},
+    QUATTRO:{name:'QUATTRO',fullName:'Cabine de réunion QUATTRO',desc:'Cabine acoustique de réunion — 2 à 4 personnes · Table incluse',basePrice:8990,delivery:'4–6 semaines',currency:'CHF',
+      importFee:590,
+      options:[
+        {id:'benches', label:'Set de 2 bancs (optionnel)',    price:700,  locked:false, perUnit:true},
+        {id:'screen',  label:"Support d'écran (optionnel)",   price:400,  locked:false, perUnit:true},
+        {id:'assembly',label:'Montage',                       price:990,  locked:true,  perUnit:true},
+        {id:'delivery',label:'Livraison',                     price:990,  locked:true,  perUnit:true},
+      ]},
+    DEEPWORK:{name:'DEEPWORK',fullName:'Cabine DEEPWORK',desc:'Cabine acoustique focus — 1 personne · Bureau réglable inclus',basePrice:8990,delivery:'4–6 semaines',currency:'CHF',
+      importFee:590,
+      options:[
+        {id:'assembly',label:'Montage',                       price:990,  locked:true,  perUnit:true},
+        {id:'delivery',label:'Livraison',                     price:990,  locked:true,  perUnit:true},
+      ]}
+  }
+};
+
+// ── UI STRINGS ─────────────────────────────────────────────
+const UI = {
+  fr:{sub:'Devis rapide',secClient:'Client',lblCompany:"Nom de l'entreprise *",lblContact:'Contact (optionnel)',lblDate:'Date',secProducts:'Produits & options',btnAdd:'+ Ajouter un produit',secDiscount:'Remise commerciale',lblDiscount:'% de remise sur le(s) cabine(s)',secNote:'Note personnalisée',notePH:'ex: Livraison prévue en juin...',disclaimer:'⚠️ <strong>Devis indicatif non contractuel.</strong> Tous les prix sont hors taxes. N° TVA et adresse de livraison à confirmer.',btnUpdate:'🔄 Mettre à jour',btnCopy:'📋 Copier le texte email',previewLbl:'Aperçu du devis indicatif',emptyH3:'Commencez par ajouter un produit',emptyP:'Cliquez sur "+ Ajouter un produit".',modalTitle:'Quel produit ajouter ?',modalCancel:'Annuler',modalConfirm:'Ajouter',docWord:'Devis',badge:'Devis indicatif',validity:'Validité : 14 jours',labelDate:'Date',from:'Émetteur',to:'Client',warning:'⚠ Adresse de livraison & N° TVA à confirmer',condPayment:'Paiement',condPayVal:'Prépaiement intégral',condDelivery:'Délai livraison',condOrigin:'Origine',condOriginVal:'🇩🇪 Allemagne',colDesc:'Description',colUnit:'Prix unit. HT',colQty:'Qté',colTotal:'Total HT',totalLabel:'Total HT',subtotalLabel:'Sous-total HT',vatLabel:'TVA',discLabel:'Remise',tagTable:'Table incluse',tagDesk:'Bureau réglable inclus',mandatory:'Obligatoire',removeLabel:'✕ Retirer',qtyLabel:'Quantité',unitLabel:'unité(s)',discountLabel:'Remise',copiedLabel:'✅ Copié !',
+    footer:"<strong>Tous les prix sont hors taxes. Les taux de TVA appropriés seront appliqués.</strong> En tant qu'entreprise établie en Allemagne (mute-labs GmbH), nos ventes B2B intracommunautaires sont exonérées de TVA sous réserve d'un numéro de TVA intracommunautaire valide. Devis indicatif non contractuel — devis officiel émis après confirmation de l'adresse de livraison et du numéro de TVA. Validité 14 jours.",
+    emailFn:(c,p,t)=>`Bonjour${c?' '+c.split(' ')[0]:''},\n\nSuite à notre échange, je vous transmets notre documentation produit ainsi qu'un premier devis indicatif.\n${p}\n\n──────────────────────────\nTotal HT indicatif : ${t}\n\nTous les prix sont hors taxes. Nos ventes B2B intracommunautaires sont exonérées de TVA sous réserve d'un numéro de TVA intracommunautaire valide.\nPaiement : prépaiement intégral.\n\n⚠ Pour le devis officiel, il nous faudra :\n  → Votre adresse de livraison complète\n  → Votre numéro de TVA intracommunautaire\n\nBien cordialement,`},
+  de:{sub:'Angebotsgenerator',secClient:'Kunde',lblCompany:'Firmenname *',lblContact:'Ansprechpartner (optional)',lblDate:'Datum',secProducts:'Produkte & Optionen',btnAdd:'+ Produkt hinzufügen',secDiscount:'Rabatt',lblDiscount:'% Rabatt auf Kabine(n)',secNote:'Anmerkung',notePH:'z.B. Lieferung geplant für Juni...',disclaimer:'⚠️ <strong>Unverbindliches Angebot.</strong> Alle Preise zzgl. 19% MwSt. (im Total enthalten). Lieferadresse noch zu bestätigen.',btnUpdate:'🔄 Aktualisieren',btnCopy:'📋 E-Mail-Text kopieren',previewLbl:'Vorschau — unverbindliches Angebot',emptyH3:'Fügen Sie ein Produkt hinzu',emptyP:'Klicken Sie auf "+ Produkt hinzufügen".',modalTitle:'Welches Produkt hinzufügen?',modalCancel:'Abbrechen',modalConfirm:'Hinzufügen',docWord:'Angebot',badge:'Unverbindliches Angebot',validity:'Gültigkeit: 14 Tage',labelDate:'Datum',from:'Anbieter',to:'Kunde',warning:'⚠ Lieferadresse & USt-IdNr. noch zu bestätigen',condPayment:'Zahlung',condPayVal:'Vollständige Vorauszahlung',condDelivery:'Lieferzeit',condOrigin:'Herkunft',condOriginVal:'🇩🇪 Deutschland',colDesc:'Beschreibung',colUnit:'Einzelpreis (netto)',colQty:'Menge',colTotal:'Gesamt',totalLabel:'Gesamtbetrag (inkl. MwSt.)',subtotalLabel:'Nettobetrag',vatLabel:'MwSt. 19%',discLabel:'Rabatt',tagTable:'Tisch inklusive',tagDesk:'Schreibtisch inklusive',mandatory:'Pflichtleistung',removeLabel:'✕ Entfernen',qtyLabel:'Menge',unitLabel:'Einheit(en)',discountLabel:'Rabatt',copiedLabel:'✅ Kopiert!',
+    footer:'<strong>Alle Preise verstehen sich netto zzgl. 19% MwSt. (im Gesamtbetrag enthalten).</strong> Da mute-labs GmbH in Deutschland ansässig ist, gilt für Lieferungen innerhalb Deutschlands die MwSt. von 19%. Unverbindliches Angebot — offizielle Auftragsbestätigung nach Bestätigung der Lieferadresse. Gültigkeit 14 Tage.',
+    emailFn:(c,p,t)=>`Guten Tag${c?' '+c.split(' ')[0]:''},\n\nvielen Dank für Ihr Interesse. Anbei erhalten Sie unsere Produktdokumentation sowie ein erstes unverbindliches Angebot.\n${p}\n\n──────────────────────────\nGesamtbetrag netto: ${t}\n\nAlle Preise verstehen sich netto. Innergemeinschaftliche B2B-Lieferungen sind bei Vorlage einer gültigen USt-IdNr. steuerbefreit.\nZahlung: vollständige Vorauszahlung.\n\n⚠ Für das offizielle Angebot benötigen wir:\n  → Vollständige Lieferadresse\n  → Ihre USt-IdNr.\n\nMit freundlichen Grüßen,`},
+  en:{sub:'Quick Quote Generator',secClient:'Client',lblCompany:'Company name *',lblContact:'Contact (optional)',lblDate:'Date',secProducts:'Products & options',btnAdd:'+ Add a product',secDiscount:'Commercial discount',lblDiscount:'% discount on booth(s)',secNote:'Custom note',notePH:'e.g. Delivery planned for June...',disclaimer:'⚠️ <strong>Indicative quote — not binding.</strong> All prices excl. VAT. VAT number and delivery address to be confirmed.',btnUpdate:'🔄 Refresh preview',btnCopy:'📋 Copy email text',previewLbl:'Indicative quote preview',emptyH3:'Start by adding a product',emptyP:'Click on "+ Add a product".',modalTitle:'Which product to add?',modalCancel:'Cancel',modalConfirm:'Add',docWord:'Quote',badge:'Indicative Quote',validity:'Valid for: 14 days',labelDate:'Date',from:'Issuer',to:'Client',warning:'⚠ Delivery address & VAT number to be confirmed',condPayment:'Payment',condPayVal:'Full prepayment',condDelivery:'Delivery time',condOrigin:'Made in',condOriginVal:'🇩🇪 Germany',colDesc:'Description',colUnit:'Unit price (excl. VAT)',colQty:'Qty',colTotal:'Total (excl. VAT)',totalLabel:'Total (excl. VAT)',subtotalLabel:'Subtotal',vatLabel:'VAT',discLabel:'Discount',tagTable:'Table included',tagDesk:'Desk included',mandatory:'Mandatory',removeLabel:'✕ Remove',qtyLabel:'Quantity',unitLabel:'unit(s)',discountLabel:'Discount',copiedLabel:'✅ Copied!',
+    footer:'<strong>All prices are excl. VAT. Applicable VAT rates will be applied.</strong> As a German company (mute-labs GmbH), intra-EU B2B sales are VAT-exempt upon presentation of a valid EU VAT number. Indicative quote — official quote issued upon confirmation of delivery address and VAT number. Valid 14 days.',
+    emailFn:(c,p,t)=>`Hi${c?' '+c.split(' ')[0]:''},\n\nFollowing our conversation, please find attached our product documentation and a first indicative quote.\n${p}\n\n──────────────────────────\nTotal excl. VAT: ${t}\n\nAll prices excl. VAT. Intra-EU B2B sales are VAT-exempt with a valid EU VAT number.\nPayment: full prepayment.\n\n⚠ To issue the official quote, we will need:\n  → Your full delivery address\n  → Your EU VAT number\n\nBest regards,`},
+  nl:{sub:'Offertegenerator',secClient:'Klant',lblCompany:'Bedrijfsnaam *',lblContact:'Contactpersoon (optioneel)',lblDate:'Datum',secProducts:'Producten & opties',btnAdd:'+ Product toevoegen',secDiscount:'Commerciële korting',lblDiscount:'% korting op de cabine(s)',secNote:'Persoonlijke opmerking',notePH:'bijv. Levering gepland voor juni...',disclaimer:'⚠️ <strong>Indicatieve offerte — niet bindend.</strong> Alle prijzen zijn excl. btw. Btw-nummer en leveringsadres nog te bevestigen.',btnUpdate:'🔄 Voorbeeld vernieuwen',btnCopy:'📋 E-mailtekst kopiëren',previewLbl:'Voorbeeld van de indicatieve offerte',emptyH3:'Begin met het toevoegen van een product',emptyP:'Klik op "+ Product toevoegen".',modalTitle:'Welk product toevoegen?',modalCancel:'Annuleren',modalConfirm:'Toevoegen',docWord:'Offerte',badge:'Indicatieve offerte',validity:'Geldig: 14 dagen',labelDate:'Datum',from:'Afzender',to:'Klant',warning:'⚠ Leveringsadres & btw-nummer nog te bevestigen',condPayment:'Betaling',condPayVal:'Volledige vooruitbetaling',condDelivery:'Levertijd',condOrigin:'Gemaakt in',condOriginVal:'🇩🇪 Duitsland',colDesc:'Omschrijving',colUnit:'Eenheidsprijs (excl. btw)',colQty:'Aantal',colTotal:'Totaal (excl. btw)',totalLabel:'Totaal (excl. btw)',subtotalLabel:'Subtotaal',vatLabel:'BTW',discLabel:'Korting',tagTable:'Tafel inbegrepen',tagDesk:'Bureau inbegrepen',mandatory:'Verplicht',removeLabel:'✕ Verwijderen',qtyLabel:'Aantal',unitLabel:'stuk(s)',discountLabel:'Korting',copiedLabel:'✅ Gekopieerd!',
+    footer:'<strong>Alle prijzen zijn excl. btw. De toepasselijke btw-tarieven worden toegepast.</strong> Als Duits bedrijf (mute-labs GmbH) zijn intra-EU B2B-verkopen vrijgesteld van btw mits overlegging van een geldig EU-btw-nummer. Indicatieve offerte — officiële offerte wordt uitgebracht na bevestiging van het leveringsadres en het btw-nummer. Geldig 14 dagen.',
+    emailFn:(c,p,t)=>`Geachte${c?' '+c.split(' ')[0]:''},\n\nNaar aanleiding van ons gesprek stuur ik u onze productdocumentatie en een eerste indicatieve offerte.\n${p}\n\n──────────────────────────\nTotaal excl. btw: ${t}\n\nAlle prijzen zijn excl. btw. Intra-EU B2B-verkopen zijn vrijgesteld van btw met een geldig EU-btw-nummer.\nBetaling: volledige vooruitbetaling.\n\n⚠ Voor de officiële offerte hebben wij nodig:\n  → Volledig leveringsadres\n  → Uw EU-btw-nummer\n\nMet vriendelijke groet,`},
+  it:{sub:'Generatore di Preventivi',secClient:'Cliente',lblCompany:'Nome azienda *',lblContact:'Referente (opzionale)',lblDate:'Data',secProducts:'Prodotti & opzioni',btnAdd:'+ Aggiungi un prodotto',secDiscount:'Sconto commerciale',lblDiscount:'% di sconto sulla/e cabina/e',secNote:'Nota personalizzata',notePH:'es. Consegna prevista a giugno...',disclaimer:'⚠️ <strong>Preventivo indicativo non vincolante.</strong> Tutti i prezzi sono IVA esclusa. P. IVA e indirizzo di consegna da confermare.',btnUpdate:'🔄 Aggiorna anteprima',btnCopy:'📋 Copia testo email',previewLbl:'Anteprima del preventivo indicativo',emptyH3:'Inizia aggiungendo un prodotto',emptyP:'Clicca su "+ Aggiungi un prodotto".',modalTitle:'Quale prodotto aggiungere?',modalCancel:'Annulla',modalConfirm:'Aggiungi',docWord:'Preventivo',badge:'Preventivo indicativo',validity:'Validità: 14 giorni',labelDate:'Data',from:'Mittente',to:'Cliente',warning:'⚠ Indirizzo di consegna & P. IVA da confermare',condPayment:'Pagamento',condPayVal:'Pagamento anticipato integrale',condDelivery:'Tempi di consegna',condOrigin:'Prodotto in',condOriginVal:'🇩🇪 Germania',colDesc:'Descrizione',colUnit:'Prezzo unit. (IVA escl.)',colQty:'Q.tà',colTotal:'Totale (IVA escl.)',totalLabel:'Totale (IVA escl.)',subtotalLabel:'Subtotale',vatLabel:'IVA',discLabel:'Sconto',tagTable:'Tavolo incluso',tagDesk:'Scrivania inclusa',mandatory:'Obbligatorio',removeLabel:'✕ Rimuovi',qtyLabel:'Quantità',unitLabel:'unità',discountLabel:'Sconto',copiedLabel:'✅ Copiato!',
+    footer:"<strong>Tutti i prezzi sono IVA esclusa. Le aliquote IVA applicabili verranno applicate.</strong> In quanto società tedesca (mute-labs GmbH), le vendite B2B intracomunitarie sono esenti IVA previa presentazione di un numero di partita IVA UE valido. Preventivo indicativo — preventivo ufficiale emesso dopo conferma dell'indirizzo di consegna e della P. IVA. Validità 14 giorni.",
+    emailFn:(c,p,t)=>`Gentile${c?' '+c.split(' ')[0]:''},\n\na seguito della nostra conversazione, le trasmetto la documentazione di prodotto e un primo preventivo indicativo.\n${p}\n\n──────────────────────────\nTotale netto indicativo: ${t}\n\nTutti i prezzi sono IVA esclusa. Le vendite B2B intracomunitarie sono esenti IVA con P. IVA UE valida.\nPagamento: pagamento anticipato integrale.\n\n⚠ Per il preventivo ufficiale, avremo bisogno di:\n  → Indirizzo di consegna completo\n  → Numero di partita IVA UE\n\nCordiali saluti,`},
+  es:{sub:'Generador de Presupuestos',secClient:'Cliente',lblCompany:'Nombre de empresa *',lblContact:'Contacto (opcional)',lblDate:'Fecha',secProducts:'Productos & opciones',btnAdd:'+ Añadir un producto',secDiscount:'Descuento comercial',lblDiscount:'% de descuento en cabina(s)',secNote:'Nota personalizada',notePH:'ej. Entrega prevista en junio...',disclaimer:'⚠️ <strong>Presupuesto indicativo no vinculante.</strong> Todos los precios excl. IVA. NIF/CIF e dirección de entrega a confirmar.',btnUpdate:'🔄 Actualizar vista previa',btnCopy:'📋 Copiar texto de email',previewLbl:'Vista previa del presupuesto indicativo',emptyH3:'Empiece añadiendo un producto',emptyP:'Haga clic en "+ Añadir un producto".',modalTitle:'¿Qué producto añadir?',modalCancel:'Cancelar',modalConfirm:'Añadir',docWord:'Presupuesto',badge:'Presupuesto indicativo',validity:'Validez: 14 días',labelDate:'Fecha',from:'Emisor',to:'Cliente',warning:'⚠ Dirección de entrega & NIF/CIF a confirmar',condPayment:'Pago',condPayVal:'Pago anticipado íntegro',condDelivery:'Plazo de entrega',condOrigin:'Fabricado en',condOriginVal:'🇩🇪 Alemania',colDesc:'Descripción',colUnit:'Precio unit. (excl. IVA)',colQty:'Cant.',colTotal:'Total (excl. IVA)',totalLabel:'Total (excl. IVA)',subtotalLabel:'Subtotal',vatLabel:'IVA',discLabel:'Descuento',tagTable:'Mesa incluida',tagDesk:'Escritorio incluido',mandatory:'Obligatorio',removeLabel:'✕ Eliminar',qtyLabel:'Cantidad',unitLabel:'unidad(es)',discountLabel:'Descuento',copiedLabel:'✅ ¡Copiado!',
+    footer:'<strong>Todos los precios excl. IVA. Se aplicarán los tipos de IVA correspondientes.</strong> Como empresa alemana (mute-labs GmbH), las ventas B2B intracomunitarias están exentas de IVA previa comunicación de un número de IVA intracomunitario válido. Presupuesto indicativo — presupuesto oficial emitido tras confirmación de la dirección de entrega y del NIF. Validez 14 días.',
+    emailFn:(c,p,t)=>`Estimado/a${c?' '+c.split(' ')[0]:''},\n\ntras nuestra conversación, le envío adjunta nuestra documentación de producto y un primer presupuesto indicativo.\n${p}\n\n──────────────────────────\nTotal excl. IVA indicativo: ${t}\n\nTodos los precios excl. IVA. Las ventas B2B intracomunitarias están exentas de IVA con NIF intracomunitario válido.\nPago: pago anticipado íntegro.\n\n⚠ Para el presupuesto oficial necesitaremos:\n  → Dirección de entrega completa\n  → Número de IVA intracomunitario\n\nAtentamente,`},
+  ch:{sub:'Devis rapide (CH)',secClient:'Client',lblCompany:"Nom de l'entreprise *",lblContact:'Contact (optionnel)',lblDate:'Date',secProducts:'Produits & options',btnAdd:'+ Ajouter un produit',secDiscount:'Remise commerciale',lblDiscount:'% de remise sur le(s) cabine(s)',secNote:'Note personnalisée',notePH:'ex: Livraison en juin...',disclaimer:'⚠️ <strong>Devis indicatif non contractuel.</strong> Prix hors TVA suisse. Frais d\'importation inclus. Adresse de livraison à confirmer.',btnUpdate:'🔄 Mettre à jour',btnCopy:'📋 Copier le texte email',previewLbl:'Aperçu du devis indicatif',emptyH3:'Commencez par ajouter un produit',emptyP:'Cliquez sur "+ Ajouter un produit".',modalTitle:'Quel produit ajouter ?',modalCancel:'Annuler',modalConfirm:'Ajouter',docWord:'Devis',badge:'Devis indicatif',validity:'Validité : 14 jours',labelDate:'Date',from:'Émetteur',to:'Client',warning:'⚠ Adresse de livraison à confirmer',condPayment:'Paiement',condPayVal:'Prépaiement intégral',condDelivery:'Délai livraison',condOrigin:'Origine',condOriginVal:'🇩🇪 Allemagne',colDesc:'Description',colUnit:'Prix unit. HT',colQty:'Qté',colTotal:'Total',totalLabel:'Total (TVA incluse)',subtotalLabel:'Sous-total HT',vatLabel:'TVA Suisse 8.1%',discLabel:'Remise',tagTable:'Table incluse',tagDesk:'Bureau réglable inclus',mandatory:'Obligatoire',removeLabel:'✕ Retirer',qtyLabel:'Quantité',unitLabel:'unité(s)',copiedLabel:'✅ Copié !',discountLabel:'Remise',
+    footer:"<strong>Tous les prix sont hors TVA suisse (8.1%), incluse dans le total.</strong> Un forfait de frais d\'importation est appliqué par commande. Devis indicatif non contractuel. Validité 14 jours.",
+    emailFn:(c,p,t)=>`Bonjour${c?' '+c.split(' ')[0]:''},\n\nSuite à notre échange, veuillez trouver notre documentation produit et un premier devis indicatif.\n${p}\n\n──────────────────────────\nTotal indicatif (TVA CH incluse) : ${t}\n\nPaiement : prépaiement intégral.\n\n⚠ Pour le devis officiel, il nous faudra :\n  \u2192 Votre adresse de livraison complète\n\nBien cordialement,`}
+};
+
+// ── STATE ──────────────────────────────────────────────────
+let lang='fr', lines=[], modalSel=null;
+const today=new Date();
+document.getElementById('quoteDate').value=today.toLocaleDateString('fr-FR');
+
+
+function applyUI(){
+  const u=UI[lang];
+  const ids={
+    'sb-sub':'sub','sec-client':'secClient','lbl-company':'lblCompany','lbl-contact':'lblContact',
+    'lbl-date':'lblDate','sec-products':'secProducts','btn-add':'btnAdd','sec-discount':'secDiscount',
+    'lbl-discount':'lblDiscount','sec-note':'secNote','btn-update':'btnUpdate',
+    'preview-lbl':'previewLbl','modal-title':'modalTitle','modal-cancel':'modalCancel','modal-confirm':'modalConfirm',
+    'empty-h3':'emptyH3','empty-p':'emptyP'
+  };
+  for(const [id,key] of Object.entries(ids)){const el=document.getElementById(id);if(el)el.textContent=u[key];}
+  document.getElementById('disclaimer').innerHTML=u.disclaimer;
+  document.getElementById('customNote').placeholder=u.notePH;
+}
+
+function openModal(){
+  modalSel=null;
+  const cat=CATALOG[lang],u=UI[lang];
+  document.getElementById('modal-title').textContent=u.modalTitle;
+  document.getElementById('modal-grid').innerHTML=['SOLO','QUATTRO','DEEPWORK'].map(k=>{
+    const p=cat[k];
+    return `<div class="modal-prod-card" id="m-${k}" onclick="modalSelect('${k}')">
+      <div style="font-size:13px;font-weight:700;">${p.name}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;">${p.fullName}</div>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--sage-dark);margin-top:4px;">${fmtI(p.basePrice)}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('modal').style.display='flex';
+}
+function closeModal(){document.getElementById('modal').style.display='none';}
+function modalSelect(k){modalSel=k;document.querySelectorAll('.modal-prod-card').forEach(c=>c.classList.remove('selected'));document.getElementById('m-'+k)?.classList.add('selected');}
+function confirmModal(){
+  if(!modalSel)return;
+  const prod=CATALOG[lang][modalSel];
+  const defaultOpts = new Set(prod.options.filter(o=>o.locked).map(o=>o.id));
+  const defaultOptQtys = {};
+  prod.options.forEach(o=>{ defaultOptQtys[o.id] = o.locked ? 1 : 1; }); // locked will sync with qty
+  lines.push({productKey:modalSel,qty:1,disc:0,opts:defaultOpts,optQtys:defaultOptQtys});
+  closeModal();renderLines();update();
+}
+
+function renderLines(){
+  const u=UI[lang],cat=CATALOG[lang],container=document.getElementById('lines-container');
+  if(!lines.length){container.innerHTML='';return;}
+  container.innerHTML=lines.map((line,idx)=>{
+    const prod=cat[line.productKey];
+        const optsHtml=prod.options.map(function(opt){
+      const active=line.opts.has(opt.id);
+      if(!active && !opt.locked){
+        return '<div class="option-row clickable" onclick="toggleOpt('+idx+',\''+opt.id+'\')"><div class="opt-left"><div class="opt-check"></div><span class="opt-label">'+opt.label+'</span></div><span class="opt-price">+'+fmtI(opt.price)+'/u</span></div>';
+      }
+      if(opt.locked){
+        const oqty=line.qty;
+        return '<div class="option-row locked-on"><div class="opt-left"><div class="opt-check"></div><span class="opt-label">'+opt.label+'</span><span class="opt-req" style="margin-left:5px;">'+u.mandatory+'</span></div><div style="display:flex;align-items:center;gap:6px;"><span style="font-size:11px;color:var(--muted);">×'+oqty+'</span><span class="opt-price">'+fmtI(round2(opt.price*oqty))+'</span></div></div>';
+      } else {
+        const oqty=(line.optQtys&&line.optQtys[opt.id]!=null)?line.optQtys[opt.id]:line.qty;
+        return '<div class="option-row active" style="cursor:pointer;" onclick="toggleOpt('+idx+',\''+opt.id+'\')">'
+          +'<div class="opt-left"><div class="opt-check"></div><span class="opt-label">'+opt.label+'</span></div>'
+          +'<div style="display:flex;align-items:center;gap:5px;" onclick="event.stopPropagation()">'
+          +'<button class="qty-btn" style="width:20px;height:20px;font-size:12px;" onclick="changeOptQty('+idx+',\''+opt.id+'\',-1)">−</button>'
+          +'<span style="font-size:12px;font-weight:700;font-family:DM Mono,monospace;min-width:18px;text-align:center;">'+oqty+'</span>'
+          +'<button class="qty-btn" style="width:20px;height:20px;font-size:12px;" onclick="changeOptQty('+idx+',\''+opt.id+'\',1)">+</button>'
+          +'<span class="opt-price" style="min-width:60px;text-align:right;">'+fmtI(round2(opt.price*oqty))+'</span>'
+          +'</div></div>';
+      }
+    }).join('');
+    return `<div class="line-block">
+      <div class="line-header"><span class="line-title">${prod.fullName}</span><button class="line-remove" onclick="removeLine(${idx})">${u.removeLabel}</button></div>
+      <label style="margin-top:0;font-size:11px;">${u.qtyLabel}</label>
+      <div class="qty-row">
+        <button class="qty-btn" onclick="changeLineQty(${idx},-1)">−</button>
+        <span class="qty-display" id="qty-${idx}">${line.qty}</span>
+        <button class="qty-btn" onclick="changeLineQty(${idx},1)">+</button>
+        <span style="font-size:11px;color:var(--muted);margin-left:4px;">${u.unitLabel}</span>
+      </div>
+      <label style="font-size:11px;margin-top:8px;">${u.discountLabel}</label>
+      <div class="disc-row">
+        <input type="number" min="0" max="100" value="${line.disc||0}" id="disc-${idx}"
+          oninput="changeLineDisc(${idx},this.value)"
+          style="width:60px;padding:5px 7px;border:1px solid var(--border);border-radius:5px;font-family:'DM Mono',monospace;font-size:12px;text-align:center;outline:none;">
+        <span style="font-size:11.5px;color:var(--muted);">%</span>
+        ${line.disc>0?`<span style="font-size:11px;color:#C0392B;font-family:'DM Mono',monospace;">−${fmtI(Math.round(prod.basePrice*line.disc/100))}/u</span>`:''}
+      </div>
+      <div style="margin-top:8px;">${optsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function removeLine(idx){lines.splice(idx,1);renderLines();update();}
+function changeLineQty(idx,d){
+  lines[idx].qty=Math.max(1,Math.min(99,lines[idx].qty+d));
+  document.getElementById('qty-'+idx).textContent=lines[idx].qty;
+  // Sync locked options qty to follow the line qty
+  const cat=CATALOG[lang];
+  const prod=cat[lines[idx].productKey];
+  if(!lines[idx].optQtys) lines[idx].optQtys={};
+  prod.options.filter(o=>o.locked).forEach(o=>{
+    lines[idx].optQtys[o.id]=lines[idx].qty;
+  });
+  update();
+}
+function changeLineDisc(idx,val){lines[idx].disc=Math.max(0,Math.min(100,parseFloat(val)||0));update();}
+function toggleOpt(idx,id){
+  const s=lines[idx].opts;
+  if(s.has(id)){
+    s.delete(id);
+  } else {
+    s.add(id);
+    if(!lines[idx].optQtys) lines[idx].optQtys={};
+    lines[idx].optQtys[id] = lines[idx].qty; // default to line qty
+  }
+  renderLines();update();
+}
+function changeOptQty(idx,id,d){
+  if(!lines[idx].optQtys) lines[idx].optQtys={};
+  const cur = lines[idx].optQtys[id]!=null ? lines[idx].optQtys[id] : lines[idx].qty;
+  lines[idx].optQtys[id] = Math.max(1, Math.min(99, cur+d));
+  renderLines();update();
+}
+
+function importFeeLabel(){
+  const labels={fr:"Frais d'importation (Suisse)",de:"Importkosten (Schweiz)",en:"Import fees (Switzerland)",nl:"Invoerkosten (Zwitserland)",it:"Costi di importazione (Svizzera)",es:"Gastos de importación (Suiza)",ch:"Frais d'importation (Suisse)"};
+  return labels[lang]||labels['fr'];
+}
+function getCurrency(){return (CATALOG[lang]?.SOLO?.currency)||'€';}
+function fmtN(n){const c=getCurrency();return n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+c;}
+function fmtI(n){const c=getCurrency();return n.toLocaleString('fr-FR')+' '+c;}
+
+function round2(n){ return Math.round(n * 100) / 100; }
+
+function computeAll(){
+  const cat=CATALOG[lang];
+  const isCH = lang==='ch';
+  const isDE = lang==='de';
+  const CH_VAT = 0.081;
+  const DE_VAT = 0.19;
+  let groups=[],grandHT=0,totalVAT=0,groups_importFees=[];
+  lines.forEach((line,idx)=>{
+    const prod=cat[line.productKey];
+    const disc=Math.max(0,Math.min(100,line.disc||0));
+    const discPU=round2(prod.basePrice*disc/100),netUnit=round2(prod.basePrice-discPU),baseTotal=round2(netUnit*line.qty);
+    grandHT=round2(grandHT+baseTotal);
+    let rows=[{name:prod.fullName,desc:prod.desc,productKey:line.productKey,discAmt:discPU,disc,listPrice:prod.basePrice,netUnit,qty:line.qty,total:baseTotal,type:'base'}];
+    prod.options.forEach(opt=>{
+      if(!line.opts.has(opt.id))return;
+      // Locked opts always follow line qty; optional opts use their own stored qty
+      const oqty = opt.locked ? line.qty : ((line.optQtys&&line.optQtys[opt.id]!=null) ? line.optQtys[opt.id] : line.qty);
+      const t=round2(opt.price*oqty);
+      grandHT=round2(grandHT+t);
+      rows.push({name:opt.label,unitPrice:opt.price,qty:oqty,total:t,type:'opt',locked:opt.locked});
+    });
+    // Import fee (CH only): qty always 1, only highest fee applies across all lines
+    if(prod.importFee) groups_importFees.push({fee:prod.importFee,prod});
+    groups.push({lineIdx:idx,prod,rows,disc});
+  });
+  // CH import fee: only the highest fee, qty always 1 (forfait par commande)
+  if(isCH && groups_importFees.length){
+    const maxFeeEntry = groups_importFees.reduce((a,b)=>b.fee>a.fee?b:a);
+    const importTotal = maxFeeEntry.fee; // qty=1 always
+    grandHT = round2(grandHT + importTotal);
+    const ownerGroup = groups.find(g=>g.prod===maxFeeEntry.prod);
+    if(ownerGroup) ownerGroup.rows.push({name:importFeeLabel(),unitPrice:maxFeeEntry.fee,qty:1,total:importTotal,type:'import'});
+  }
+  // CH: TVA 8.1% sur tout — arrondi à 2 décimales comme Odoo
+  if(isCH){
+    totalVAT = round2(grandHT * CH_VAT);
+    grandHT = round2(grandHT + totalVAT);
+  }
+  if(isDE){
+    totalVAT = round2(grandHT * DE_VAT);
+    grandHT = round2(grandHT + totalVAT);
+  }
+  return{groups,grandHT,totalVAT,isCH,isDE};
+}
+
+function makeRef(){const co=document.getElementById('company').value.trim(),seed=(today.getMonth()+1)*100+today.getDate()+co.length*13;return'ML-'+today.getFullYear()+'-'+String((seed%9000)+1000);}
+
+function update(){
+  const u=UI[lang],co=document.getElementById('company').value.trim(),contact=document.getElementById('contact').value.trim(),date=document.getElementById('quoteDate').value.trim(),note=document.getElementById('customNote').value.trim(),container=document.getElementById('quote-doc');
+  if(!co||!lines.length){container.innerHTML=`<div class="empty"><div class="empty-icon">📄</div><h3>${u.emptyH3}</h3><p>${u.emptyP}</p></div>`;return;}
+  const data=computeAll(),multiLine=data.groups.length>1;
+  let tableHtml='';
+  data.groups.forEach(g=>{
+    if(multiLine)tableHtml+=`<tr class="section-divider"><td colspan="4">${g.prod.fullName}</td></tr>`;
+    g.rows.forEach(row=>{
+      if(row.type==='base'){
+        const dH=row.discAmt>0?`<br><span class="tag-disc">−${fmtI(row.discAmt)} (${row.disc}%)</span><br><strong>${fmtI(row.netUnit)}</strong>`:'';
+        const tagH=row.productKey==='QUATTRO'?`<div style="margin-top:3px;"><span class="tag-incl">${u.tagTable}</span></div>`:row.productKey==='DEEPWORK'?`<div style="margin-top:3px;"><span class="tag-incl">${u.tagDesk}</span></div>`:'';
+        tableHtml+=`<tr><td><div class="item-name">${row.name}</div><div class="item-desc">${row.desc}</div>${tagH}</td><td class="mono">${fmtI(row.listPrice)}${dH}</td><td class="mono">${row.qty}</td><td class="mono"><strong>${fmtN(row.total)}</strong></td></tr>`;
+      }else if(row.type==='import'){
+        tableHtml+=`<tr style="background:#FFF8ED;"><td><div class="item-name" style="color:#C8870A;">${row.name}</div></td><td class="mono" style="color:#C8870A;">${fmtI(row.unitPrice)}</td><td class="mono" style="color:#C8870A;">${row.qty}</td><td class="mono" style="color:#C8870A;font-weight:600;">${fmtN(row.total)}</td></tr>`;
+      }else{
+        tableHtml+=`<tr><td><div class="item-name">${row.name}</div></td><td class="mono">${fmtI(row.unitPrice)}</td><td class="mono">${row.qty}</td><td class="mono">${fmtN(row.total)}</td></tr>`;
+      }
+    });
+  });
+  const discRow=data.groups.some(g=>g.disc>0)?data.groups.filter(g=>g.disc>0).map(g=>`<div class="t-row"><span class="lbl" style="color:#C0392B">${g.prod.name} ${u.discLabel} ${g.disc}%</span><span class="amt" style="color:#C0392B">−${fmtN(Math.round(g.prod.basePrice*g.disc/100)*lines[g.lineIdx].qty)}</span></div>`).join(''):'';
+  const noteHtml=note?`<div class="note-block"><strong style="font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Note</strong><br>${note}</div>`:'';
+  // Show only the longest delivery time to avoid confusion
+  const allDeliveries = data.groups.map(g=>g.prod.delivery);
+  const delivWeeks = allDeliveries.length > 1
+    ? allDeliveries.reduce((max, d) => {
+        // Extract the largest number from each delivery string for comparison
+        const maxNum = s => Math.max(...s.match(/\d+/g).map(Number));
+        return maxNum(d) > maxNum(max) ? d : max;
+      })
+    : allDeliveries[0] || '';
+  container.innerHTML=`
+    <div class="doc-header">
+      <div><img src="data:image/png;base64,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" alt="mute-labs" style="height:34px;width:auto;display:block;margin-bottom:4px;"><div class="doc-addr">Torstraße 164 · 10115 Berlin · mute-labs.com</div><div class="doc-badge">${u.badge}</div></div>
+      <div class="doc-meta"><strong>${u.docWord} n° ${makeRef()}</strong>${u.labelDate} : ${date||'—'}<br>${u.validity}</div>
+    </div>
+    <div class="doc-body">
+      <div class="doc-parties">
+        <div class="party"><h4>${u.from}</h4><div class="party-name">mute-labs GmbH</div><div class="party-detail">Torstraße 164 · 10115 Berlin<br>info@mute-labs.com<br>+33 7 44 09 10 70</div></div>
+        <div class="party"><h4>${u.to}</h4><div class="party-name">${co}</div><div class="party-detail">${contact?contact+'<br>':''}<span style="color:var(--amber);font-size:11px;">${u.warning}</span></div></div>
+      </div>
+      <div class="conditions-bar">
+        <div class="cond-item"><div class="cond-label">${u.condPayment}</div><div class="cond-val">${u.condPayVal}</div></div>
+        <div class="cond-item"><div class="cond-label">${u.condDelivery}</div><div class="cond-val">${delivWeeks}</div></div>
+        <div class="cond-item"><div class="cond-label">${u.condOrigin}</div><div class="cond-val">${u.condOriginVal}</div></div>
+      </div>
+      ${noteHtml}
+      <table class="items-table">
+        <thead><tr><th style="width:46%">${u.colDesc}</th><th>${u.colUnit}</th><th>${u.colQty}</th><th>${u.colTotal}</th></tr></thead>
+        <tbody>${tableHtml}</tbody>
+      </table>
+      <div class="totals-wrap"><div class="totals">${discRow}${(data.isCH||data.isDE) ? '<div class="t-row"><span class="lbl">'+u.subtotalLabel+'</span><span class="amt">'+fmtN(round2(data.grandHT-data.totalVAT))+'</span></div><div class="t-row"><span class="lbl" style="color:#4E6B62;font-weight:600;">'+u.vatLabel+'</span><span class="amt" style="color:#4E6B62;font-weight:600;">'+fmtN(data.totalVAT)+'</span></div>' : ''}<div class="t-row grand"><span class="lbl">${u.totalLabel}</span><span class="amt">${fmtN(data.grandHT)}</span></div></div></div>
+    </div>
+    <div class="doc-footer"><p>${u.footer}</p></div>`;
+}
+
+
+// ── PDF LABELS PER LANG ───────────────────────────────────
+const PDF_LABELS = {
+  fr:'🖨️ Générer le PDF', de:'🖨️ PDF generieren',
+  en:'🖨️ Generate PDF',   nl:'🖨️ PDF genereren',
+  it:'🖨️ Genera il PDF',  es:'🖨️ Generar PDF',
+  ch:'🖨️ Générer le PDF'
+};
+
+function exportPDF(){
+  const co = document.getElementById('company').value.trim();
+  const u = UI[lang];
+  if(!co || !lines.length){
+    alert(u.emptyH3);
+    return;
+  }
+  // Set document title so the browser uses it as the PDF filename
+  const oldTitle = document.title;
+  document.title = u.docWord + '_' + co.replace(/\s+/g,'_') + '_mute-labs';
+  window.print();
+  // Restore title after print dialog closes
+  setTimeout(() => { document.title = oldTitle; }, 2000);
+}
+
+// Update PDF button label on lang switch
+const _origSetLang = setLang;
+function setLang(l, btn){
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyUI();
+  renderLines();
+  update();
+  const pdfBtn = document.getElementById('btn-pdf');
+  if(pdfBtn) pdfBtn.textContent = PDF_LABELS[l] || PDF_LABELS['en'];
+}
+
+applyUI();renderLines();update();
+</script>
+</body>
+</html>

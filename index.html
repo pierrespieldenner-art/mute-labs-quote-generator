@@ -17,7 +17,7 @@
   .logo-text{font-size:14px;font-weight:700;letter-spacing:-0.02em;}
   .logo-sub{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;}
   .lang-bar{display:flex;gap:3px;margin-bottom:16px;background:var(--sage-faint);border-radius:7px;padding:3px;}
-  .lang-btn{flex:1;padding:5px 1px;border:none;background:transparent;border-radius:5px;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .12s;text-align:center;}
+  .lang-btn{flex:1;padding:5px 1px;border:none;background:transparent;border-radius:5px;font-family:'DM Sans',sans-serif;font-size:9.5px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .12s;text-align:center;}
   .lang-btn:hover{background:rgba(124,154,142,.2);color:var(--ink);}
   .lang-btn.active{background:var(--white);color:var(--sage-dark);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.08);}
   .sec{font-size:9.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 7px;padding-bottom:6px;border-bottom:1px solid var(--border);}
@@ -95,7 +95,7 @@
   .items-table td{padding:10px 12px;font-size:12px;border-bottom:1px solid #EAF0ED;vertical-align:top;color:var(--ink);}
   .items-table tbody tr:nth-child(even) td{background:#FAFCFB;}
   .items-table tbody tr:last-child td{border-bottom:none;}
-  .section-divider td{background:#4E6B62;color:white;padding:6px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;}
+  .items-table tbody tr.section-divider td{background:#4E6B62!important;color:white!important;padding:6px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;}
   .totals-wrap{display:flex;justify-content:flex-end;padding-top:14px;border-top:2px solid #E0EDE8;margin-top:4px;}
   .totals{min-width:250px;}
   .t-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12.5px;}
@@ -163,6 +163,7 @@
     <button class="lang-btn" onclick="setLang('it',this)">🇮🇹 IT</button>
     <button class="lang-btn" onclick="setLang('es',this)">🇪🇸 ES</button>
     <button class="lang-btn" onclick="setLang('ch',this)">🇨🇭 CH</button>
+    <button class="lang-btn" onclick="setLang('chde',this)">🇨🇭 DE</button>
   </div>
 
   <div class="sec" id="sec-client">Client</div>
@@ -246,11 +247,11 @@ const CATALOG = {
   },
   it:{
     SOLO:{name:'SOLO',fullName:'Cabina ufficio SOLO',desc:'Cabina acustica individuale — 1 persona',basePrice:2990,delivery:'3–4 settimane',
-      options:[{id:'stool',label:'Sgabello (opzionale)',price:300,locked:false,perUnit:true},{id:'assembly',label:'Montaggio (opzionale)',price:400,locked:false,perUnit:true},{id:'delivery',label:'Consegna',price:400,locked:true,perUnit:true}]},
+      options:[{id:'stool',label:'Sgabello (opzionale)',price:300,locked:false,perUnit:true},{id:'assembly',label:'Montaggio (opzionale)',price:400,locked:false,perUnit:true},{id:'delivery',label:'Consegna',price:400,locked:true,perUnit:true},{id:'islands',label:'Supplemento isole italiane',price:250,locked:false,perUnit:false}]},
     QUATTRO:{name:'QUATTRO',fullName:'Cabina riunione QUATTRO',desc:'Cabina acustica per riunioni — 2–4 persone',basePrice:8490,delivery:'4–6 settimane',
-      options:[{id:'benches',label:'Set di 2 panche (Opzionale)',price:700,locked:false,perUnit:true},{id:'screen',label:'Sostegno per monitor (Opzionale)',price:400,locked:false,perUnit:true},{id:'assembly',label:'Montaggio',price:800,locked:true,perUnit:true},{id:'delivery',label:'Consegna',price:800,locked:true,perUnit:true}]},
+      options:[{id:'benches',label:'Set di 2 panche (Opzionale)',price:700,locked:false,perUnit:true},{id:'screen',label:'Sostegno per monitor (Opzionale)',price:400,locked:false,perUnit:true},{id:'assembly',label:'Montaggio',price:800,locked:true,perUnit:true},{id:'delivery',label:'Consegna',price:800,locked:true,perUnit:true},{id:'islands',label:'Supplemento isole italiane',price:400,locked:false,perUnit:false}]},
     DEEPWORK:{name:'DEEPWORK',fullName:'Cabina ufficio DEEPWORK',desc:'Cabina acustica focus — 1 persona',basePrice:8490,delivery:'4–6 settimane',
-      options:[{id:'assembly',label:'Montaggio',price:800,locked:true,perUnit:true},{id:'delivery',label:'Consegna',price:800,locked:true,perUnit:true}]}
+      options:[{id:'assembly',label:'Montaggio',price:800,locked:true,perUnit:true},{id:'delivery',label:'Consegna',price:800,locked:true,perUnit:true},{id:'islands',label:'Supplemento isole italiane',price:400,locked:false,perUnit:false}]}
   },
   es:{
     SOLO:{name:'SOLO',fullName:'Cabina telefónica SOLO',desc:'Cabina acústica individual — 1 persona',basePrice:2990,delivery:'2–3 semanas',
@@ -267,6 +268,14 @@ const CATALOG = {
       options:[{id:'benches',label:'Set de 2 bancs (optionnel)',price:700,locked:false,perUnit:true},{id:'screen',label:"Support d'écran (optionnel)",price:400,locked:false,perUnit:true},{id:'assembly',label:'Montage',price:990,locked:true,perUnit:true},{id:'delivery',label:'Livraison',price:990,locked:true,perUnit:true}]},
     DEEPWORK:{name:'DEEPWORK',fullName:'Cabine DEEPWORK',desc:'Cabine acoustique focus — 1 personne',basePrice:8990,delivery:'4–6 semaines',currency:'CHF',importFee:590,
       options:[{id:'assembly',label:'Montage',price:990,locked:true,perUnit:true},{id:'delivery',label:'Livraison',price:990,locked:true,perUnit:true}]}
+  },
+  chde:{
+    SOLO:{name:'SOLO',fullName:'Telefonbox SOLO',desc:'Akustische Einzelkabine — 1 Person',basePrice:3490,delivery:'3–4 Wochen',currency:'CHF',importFee:390,
+      options:[{id:'stool',label:'Hocker (optional)',price:300,locked:false,perUnit:true},{id:'assembly',label:'Aufbau (optional)',price:400,locked:false,perUnit:true},{id:'delivery',label:'Versand',price:400,locked:true,perUnit:true}]},
+    QUATTRO:{name:'QUATTRO',fullName:'Meetingbox QUATTRO',desc:'Akustische Meetingkabine — 2 bis 4 Personen',basePrice:8990,delivery:'4–6 Wochen',currency:'CHF',importFee:590,
+      options:[{id:'benches',label:'Set aus 2 Bänken (optional)',price:700,locked:false,perUnit:true},{id:'screen',label:'Monitorhalterung (optional)',price:400,locked:false,perUnit:true},{id:'assembly',label:'Aufbau',price:990,locked:true,perUnit:true},{id:'delivery',label:'Versand',price:990,locked:true,perUnit:true}]},
+    DEEPWORK:{name:'DEEPWORK',fullName:'DEEPWORKBOX',desc:'Akustische Fokuskabine — 1 Person',basePrice:8990,delivery:'4–6 Wochen',currency:'CHF',importFee:590,
+      options:[{id:'assembly',label:'Aufbau',price:990,locked:true,perUnit:true},{id:'delivery',label:'Versand',price:990,locked:true,perUnit:true}]}
   }
 };
 
@@ -278,9 +287,15 @@ const DELIVERY_OPTIONS={
   nl:['2–3 weken','3–4 weken','4–6 weken','5–7 weken','6–8 weken'],
   it:['2–3 settimane','3–4 settimane','4–6 settimane','5–7 settimane','6–8 settimane'],
   es:['2–3 semanas','3–4 semanas','4–6 semanas','5–7 semanas','6–8 semanas'],
-  ch:['2–3 semaines','3–4 semaines','4–6 semaines','5–7 semaines','6–8 semaines']
+  ch:['2–3 semaines','3–4 semaines','4–6 semaines','5–7 semaines','6–8 semaines'],
+  chde:['2–3 Wochen','3–4 Wochen','4–6 Wochen','5–7 Wochen','6–8 Wochen']
 };
-const DELIVERY_LABEL={fr:'Délai de livraison',de:'Lieferzeit',en:'Delivery time',nl:'Levertijd',it:'Tempi di consegna',es:'Plazo de entrega',ch:'Délai de livraison'};
+
+const TAG_SHELF={fr:'Tablette incluse',de:'Ablage inklusive',en:'Shelf included',nl:'Plank inbegrepen',it:'Mensola inclusa',es:'Repisa incluida',ch:'Tablette incluse',chde:'Ablage inklusive'};
+const TAG_GLASS={fr:'Fond vitré',de:'Glasrückwand',en:'Glass back',nl:'Glazen achterwand',it:'Parete in vetro',es:'Fondo de vidrio',ch:'Fond vitré',chde:'Glasrückwand'};
+const TAG_FELT={fr:'Fond feutré',de:'Filzrückwand',en:'Felt back',nl:'Vilten achterwand',it:'Parete in feltro',es:'Fondo de fieltro',ch:'Fond feutré',chde:'Filzrückwand'};
+const TAG_OR={fr:'ou',de:'oder',en:'or',nl:'of',it:'o',es:'o',ch:'ou',chde:'oder'};
+const DELIVERY_LABEL={fr:'Délai de livraison',de:'Lieferzeit',en:'Delivery time',nl:'Levertijd',it:'Tempi di consegna',es:'Plazo de entrega',ch:'Délai de livraison',chde:'Lieferzeit'};
 function getDefaultDelivery(key){const o=DELIVERY_OPTIONS[lang]||[];return key==='SOLO'?o[1]||o[0]:o[2]||o[1]||o[0];}
 
 // ── UI STRINGS ─────────────────────────────────────────────
@@ -305,9 +320,11 @@ const UI = {
     emailFn:(c,p,t)=>`Estimado/a${c?' '+c.split(' ')[0]:''},\n\ntras nuestra conversación, le envío adjunta nuestra documentación de producto y un primer presupuesto indicativo.\n${p}\n\n──────────────────────────\nTotal excl. IVA indicativo: ${t}\n\nTodos los precios excl. IVA. Las ventas B2B intracomunitarias están exentas de IVA con NIF intracomunitario válido.\nPago: pago anticipado íntegro.\n\n⚠ Para el presupuesto oficial necesitaremos:\n  → Dirección de entrega completa\n  → Número de IVA intracomunitario\n\nAtentamente,`},
   ch:{sub:'Devis rapide (CH)',secClient:'Client',lblCompany:"Nom de l'entreprise *",lblContact:'Contact (optionnel)',lblDate:'Date',secProducts:'Produits & options',btnAdd:'+ Ajouter un produit',secDiscount:'Remise commerciale',lblDiscount:'% de remise sur le(s) cabine(s)',secNote:'Note personnalisée',notePH:'ex: Livraison en juin...',disclaimer:"⚠️ <strong>Devis indicatif non contractuel.</strong> Prix hors TVA suisse. Frais d'importation inclus. Adresse de livraison à confirmer.",btnUpdate:'🔄 Mettre à jour',btnCopy:'📋 Copier le texte email',previewLbl:'Aperçu du devis indicatif',emptyH3:'Commencez par ajouter un produit',emptyP:'Cliquez sur "+ Ajouter un produit".',modalTitle:'Quel produit ajouter ?',modalCancel:'Annuler',modalConfirm:'Ajouter',docWord:'Devis',badge:'Devis indicatif',validity:'Validité : 14 jours',labelDate:'Date',from:'Émetteur',to:'Client',warning:'⚠ Adresse de livraison à confirmer',condPayment:'Paiement',condPayVal:'Prépaiement intégral',condDelivery:'Délai livraison',condOrigin:'Origine',condOriginVal:'🇩🇪 Allemagne',colDesc:'Description',colUnit:'Prix unit. HT',colQty:'Qté',colTotal:'Total',totalLabel:'Total (TVA incluse)',subtotalLabel:'Sous-total HT',vatLabel:'TVA Suisse 8.1%',discLabel:'Remise',tagTable:'Table incluse',tagDesk:'Bureau réglable inclus',mandatory:'Obligatoire',removeLabel:'✕ Retirer',qtyLabel:'Quantité',unitLabel:'unité(s)',copiedLabel:'✅ Copié !',discountLabel:'Remise',
     footer:"<strong>Tous les prix sont hors TVA suisse (8.1%), incluse dans le total.</strong> Un forfait de frais d'importation est appliqué par commande. Devis indicatif non contractuel. Validité 14 jours.",
-    emailFn:(c,p,t)=>`Bonjour${c?' '+c.split(' ')[0]:''},\n\nSuite à notre échange, veuillez trouver notre documentation produit et un premier devis indicatif.\n${p}\n\n──────────────────────────\nTotal indicatif (TVA CH incluse) : ${t}\n\nPaiement : prépaiement intégral.\n\n⚠ Pour le devis officiel, il nous faudra :\n  \u2192 Votre adresse de livraison complète\n\nBien cordialement,`}
+    emailFn:(c,p,t)=>`Bonjour${c?' '+c.split(' ')[0]:''},\n\nSuite à notre échange, veuillez trouver notre documentation produit et un premier devis indicatif.\n${p}\n\n──────────────────────────\nTotal indicatif (TVA CH incluse) : ${t}\n\nPaiement : prépaiement intégral.\n\n⚠ Pour le devis officiel, il nous faudra :\n  \u2192 Votre adresse de livraison complète\n\nBien cordialement,`},
+  chde:{sub:'Offertgenerator (CH)',secClient:'Kunde',lblCompany:'Firmenname *',lblContact:'Ansprechpartner (optional)',lblDate:'Datum',secProducts:'Produkte & Optionen',btnAdd:'+ Produkt hinzufügen',secDiscount:'Rabatt',lblDiscount:'% Rabatt auf Kabine(n)',secNote:'Anmerkung',notePH:'z.B. Lieferung geplant für Juni...',disclaimer:'⚠️ <strong>Unverbindliches Angebot.</strong> Alle Preise in CHF, exkl. MwSt. Lieferadresse noch zu bestätigen.',btnUpdate:'🔄 Aktualisieren',btnCopy:'📋 E-Mail-Text kopieren',previewLbl:'Vorschau — unverbindliches Angebot',emptyH3:'Fügen Sie ein Produkt hinzu',emptyP:'Klicken Sie auf "+ Produkt hinzufügen".',modalTitle:'Welches Produkt hinzufügen?',modalCancel:'Abbrechen',modalConfirm:'Hinzufügen',docWord:'Angebot',badge:'Unverbindliches Angebot',validity:'Gültigkeit: 14 Tage',labelDate:'Datum',from:'Anbieter',to:'Kunde',warning:'⚠ Lieferadresse noch zu bestätigen',condPayment:'Zahlung',condPayVal:'Vollst. Vorauszahlung',condDelivery:'Lieferzeit',condOrigin:'Herkunft',condOriginVal:'🇩🇪 Deutschland',colDesc:'Beschreibung',colUnit:'Einzelpreis (exkl. MwSt.)',colQty:'Menge',colTotal:'Gesamt',totalLabel:'Total (inkl. MwSt. 8.1%)',subtotalLabel:'Zwischensumme',vatLabel:'MwSt. 8.1%',discLabel:'Rabatt',tagTable:'Tisch inklusive',tagDesk:'Schreibtisch inklusive',mandatory:'Pflichtleistung',removeLabel:'✕ Entfernen',qtyLabel:'Menge',unitLabel:'Einheit(en)',discountLabel:'Rabatt',copiedLabel:'✅ Kopiert!',
+    footer:'<strong>Alle Preise in CHF, exkl. MwSt. (8.1% im Total enthalten).</strong> Ein Importkostenpauschale wird pro Bestellung erhoben. Unverbindliches Angebot — offizielle Auftragsbestätigung nach Bestätigung der Lieferadresse. Gültigkeit 14 Tage.',
+    emailFn:(c,p,t)=>`Guten Tag${c?' '+c.split(' ')[0]:''},\n\nAnbei erhalten Sie unsere Produktdokumentation sowie ein erstes unverbindliches Angebot.\n${p}\n\n──────────────────────────\nGesamtbetrag (inkl. MwSt.): ${t}\n\nZahlung: vollständige Vorauszahlung.\n\n⚠ Für das offizielle Angebot benötigen wir:\n  → Vollständige Lieferadresse\n\nMit freundlichen Grüßen,`}
 };
-
 // ── STATE ──────────────────────────────────────────────────
 let lang='fr', lines=[], modalSel=null;
 const today=new Date();
@@ -369,7 +386,7 @@ function renderLines(){
     const optsHtml=prod.options.map(function(opt){
       const active=line.opts.has(opt.id);
       if(!active && !opt.locked){
-        return '<div class="option-row clickable" onclick="toggleOpt('+idx+',\''+opt.id+'\')"><div class="opt-left"><div class="opt-check"></div><span class="opt-label">'+opt.label+'</span></div><span class="opt-price">+'+fmtI(opt.price)+'/u</span></div>';
+        const _priceLabel=opt.perUnit===false?fmtI(opt.price):'+'+fmtI(opt.price)+'/u';return '<div class="option-row clickable" onclick="toggleOpt('+idx+',\''+opt.id+'\')"><div class="opt-left"><div class="opt-check"></div><span class="opt-label">'+opt.label+'</span></div><span class="opt-price">'+_priceLabel+'</span></div>';
       }
       if(opt.locked){
         const oqty=line.qty;
@@ -448,7 +465,7 @@ function changeOptQty(idx,id,d){
 }
 
 function importFeeLabel(){
-  const labels={fr:"Frais d'importation (Suisse)",de:"Importkosten (Schweiz)",en:"Import fees (Switzerland)",nl:"Invoerkosten (Zwitserland)",it:"Costi di importazione (Svizzera)",es:"Gastos de importación (Suiza)",ch:"Frais d'importation (Suisse)"};
+  const labels={fr:"Frais d'importation (Suisse)",de:"Importkosten (Schweiz)",en:"Import fees (Switzerland)",nl:"Invoerkosten (Zwitserland)",it:"Costi di importazione (Svizzera)",es:"Gastos de importación (Suiza)",ch:"Frais d'importation (Suisse)",chde:"Importkosten (Schweiz)"};
   return labels[lang]||labels['fr'];
 }
 function getCurrency(){return(CATALOG[lang]?.SOLO?.currency)||'€';}
@@ -458,7 +475,7 @@ function round2(n){return Math.round(n*100)/100;}
 
 function computeAll(){
   const cat=CATALOG[lang];
-  const isCH=lang==='ch';
+  const isCH=lang==='ch'||lang==='chde';
   const isDE=lang==='de';
   const CH_VAT=0.081;
   const DE_VAT=0.19;
@@ -471,7 +488,7 @@ function computeAll(){
     let rows=[{name:prod.fullName,desc:prod.desc,productKey:line.productKey,discAmt:discPU,disc,listPrice:prod.basePrice,netUnit,qty:line.qty,total:baseTotal,type:'base'}];
     prod.options.forEach(opt=>{
       if(!line.opts.has(opt.id))return;
-      const oqty=opt.locked?line.qty:((line.optQtys&&line.optQtys[opt.id]!=null)?line.optQtys[opt.id]:line.qty);
+      const oqty=opt.perUnit===false?1:(opt.locked?line.qty:((line.optQtys&&line.optQtys[opt.id]!=null)?line.optQtys[opt.id]:line.qty));
       const optPrice=(line.optPrices&&line.optPrices[opt.id]!=null)?line.optPrices[opt.id]:opt.price;
       const t=round2(optPrice*oqty);
       grandHT=round2(grandHT+t);
@@ -504,7 +521,7 @@ function update(){
     g.rows.forEach(row=>{
       if(row.type==='base'){
         const dH=row.discAmt>0?`<br><span class="tag-disc">−${fmtI(row.discAmt)} (${row.disc}%)</span><br><strong>${fmtI(row.netUnit)}</strong>`:'';
-        const tagH=row.productKey==='QUATTRO'?`<div style="margin-top:3px;"><span class="tag-incl">${u.tagTable}</span></div>`:row.productKey==='DEEPWORK'?`<div style="margin-top:3px;"><span class="tag-incl">${u.tagDesk}</span></div>`:'';
+        const _or=TAG_OR[lang]||'/';const tagH=row.productKey==='SOLO'?`<div style="margin-top:3px;"><span class="tag-incl">${TAG_SHELF[lang]||''}</span></div>`:row.productKey==='QUATTRO'?`<div style="margin-top:3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><span class="tag-incl">${u.tagTable}</span><span class="tag-incl">${TAG_GLASS[lang]||''}</span><span style="font-size:9px;color:#9BB5AE;font-weight:600;">${_or}</span><span class="tag-incl">${TAG_FELT[lang]||''}</span></div>`:row.productKey==='DEEPWORK'?`<div style="margin-top:3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><span class="tag-incl">${u.tagDesk}</span><span class="tag-incl">${TAG_GLASS[lang]||''}</span><span style="font-size:9px;color:#9BB5AE;font-weight:600;">${_or}</span><span class="tag-incl">${TAG_FELT[lang]||''}</span></div>`:'';
         tableHtml+=`<tr><td><div class="item-name">${row.name}</div><div class="item-desc">${row.desc}</div>${tagH}</td><td class="mono">${fmtI(row.listPrice)}${dH}</td><td class="mono">${row.qty}</td><td class="mono"><strong>${fmtN(row.total)}</strong></td></tr>`;
       }else if(row.type==='import'){
         tableHtml+=`<tr style="background:#FFF8ED;"><td><div class="item-name" style="color:#C8870A;">${row.name}</div></td><td class="mono" style="color:#C8870A;">${fmtI(row.unitPrice)}</td><td class="mono" style="color:#C8870A;">${row.qty}</td><td class="mono" style="color:#C8870A;font-weight:600;">${fmtN(row.total)}</td></tr>`;
@@ -544,7 +561,7 @@ function update(){
     <div class="doc-footer"><p>${u.footer}</p></div>`;
 }
 
-const PDF_LABELS={fr:'🖨️ Générer le PDF',de:'🖨️ PDF generieren',en:'🖨️ Generate PDF',nl:'🖨️ PDF genereren',it:'🖨️ Genera il PDF',es:'🖨️ Generar PDF',ch:'🖨️ Générer le PDF'};
+const PDF_LABELS={fr:'🖨️ Générer le PDF',de:'🖨️ PDF generieren',en:'🖨️ Generate PDF',nl:'🖨️ PDF genereren',it:'🖨️ Genera il PDF',es:'🖨️ Generar PDF',ch:'🖨️ Générer le PDF',chde:'🖨️ PDF generieren'};
 
 function exportPDF(){
   const co=document.getElementById('company').value.trim();
@@ -562,7 +579,7 @@ function setLang(l,btn){
   btn.classList.add('active');
   // Refresh global delivery options for new language
   const sel=document.getElementById('global-delivery');
-  if(sel){sel.innerHTML=(DELIVERY_OPTIONS[l]||[]).map((o,i)=>`<option value="${o}" ${i===1?'selected':''}>${o}</option>`).join('');}
+  if(sel){sel.innerHTML=(DELIVERY_OPTIONS[l]||DELIVERY_OPTIONS['fr']).map((o,i)=>`<option value="${o}" ${i===1?'selected':''}>${o}</option>`).join('');}
   applyUI();renderLines();update();
   const pdfBtn=document.getElementById('btn-pdf');
   if(pdfBtn)pdfBtn.textContent=PDF_LABELS[l]||PDF_LABELS['en'];

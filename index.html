@@ -538,7 +538,7 @@ function update(){
     if(multiLine)tableHtml+=`<tr class="section-divider"><td colspan="4">${g.prod.fullName}</td></tr>`;
     g.rows.forEach(row=>{
       if(row.type==='base'){
-        const _discLabel=data.groups.find(g=>g.lineIdx===data.groups.indexOf(data.groups.find(gg=>gg.rows.includes(row))));const dH=row.discAmt>0?`<br><span class="tag-disc">−${fmtI(row.discAmt)}${row.disc>0?' ('+row.disc+'%)':''}</span><br><strong>${fmtI(row.netUnit)}</strong>`:'';
+        const dH=row.discAmt>0?`<br><span class="tag-disc">−${fmtI(row.discAmt)}${row.disc>0&&row.disc%1<0.01?' ('+Math.round(row.disc)+'%)':''}</span><br><strong>${fmtI(row.netUnit)}</strong>`:'';
         const _or=TAG_OR[lang]||'/';const tagH=row.productKey==='SOLO'?`<div style="margin-top:3px;"><span class="tag-incl">${TAG_SHELF[lang]||''}</span></div>`:row.productKey==='QUATTRO'?`<div style="margin-top:3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><span class="tag-incl">${u.tagTable}</span><span class="tag-incl">${TAG_GLASS[lang]||''}</span><span style="font-size:9px;color:#9BB5AE;font-weight:600;">${_or}</span><span class="tag-incl">${TAG_FELT[lang]||''}</span></div>`:row.productKey==='DEEPWORK'?`<div style="margin-top:3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><span class="tag-incl">${u.tagDesk}</span><span class="tag-incl">${TAG_GLASS[lang]||''}</span><span style="font-size:9px;color:#9BB5AE;font-weight:600;">${_or}</span><span class="tag-incl">${TAG_FELT[lang]||''}</span></div>`:'';
         tableHtml+=`<tr><td><div class="item-name">${row.name}</div><div class="item-desc">${row.desc}</div>${tagH}</td><td class="mono">${fmtI(row.listPrice)}${dH}</td><td class="mono">${row.qty}</td><td class="mono"><strong>${fmtN(row.total)}</strong></td></tr>`;
       }else if(row.type==='import'){
@@ -548,7 +548,7 @@ function update(){
       }
     });
   });
-  const discRow=data.groups.some(g=>g.disc>0||lines[g.lineIdx].discFixed>0)?data.groups.filter(g=>g.disc>0||lines[g.lineIdx].discFixed>0).map(g=>{const l=lines[g.lineIdx];const label=l.discType==='fixed'?`${g.prod.name} ${u.discLabel} (${fmtI(l.discFixed||0)})`:`${g.prod.name} ${u.discLabel} ${g.disc}%`;return`<div class="t-row"><span class="lbl" style="color:#C0392B">${label}</span><span class="amt" style="color:#C0392B">−${fmtN(round2(g.disc/100*g.prod.basePrice*l.qty||0))}</span></div>`;}).join(''):'';
+  const discRow=data.groups.some(g=>g.disc>0||lines[g.lineIdx].discFixed>0)?data.groups.filter(g=>g.disc>0||lines[g.lineIdx].discFixed>0).map(g=>{const l=lines[g.lineIdx];const label=l.discType==='fixed'?`${g.prod.name} ${u.discLabel} (${fmtI(l.discFixed||0)})`:`${g.prod.name} ${u.discLabel} ${g.disc}%`;const amt=l.discType==='fixed'?round2((l.discFixed||0)*l.qty):round2(g.disc/100*g.prod.basePrice*l.qty);return`<div class="t-row"><span class="lbl" style="color:#C0392B">${label}</span><span class="amt" style="color:#C0392B">−${fmtN(amt)}</span></div>`;}).join(''):'';
   const noteHtml=note?`<div class="note-block"><strong style="font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Note</strong><br>${note}</div>`:'';
   const globalDeliverySel=document.getElementById('global-delivery');
   const globalDelivery=globalDeliverySel?globalDeliverySel.value:'';

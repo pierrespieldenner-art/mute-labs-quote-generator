@@ -182,6 +182,10 @@
   <select class="delivery-select" id="global-delivery" onchange="update()" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);background:var(--white);outline:none;cursor:pointer;transition:border-color .15s,box-shadow .15s;">
   </select>
 
+  <div class="sec" id="sec-payment">Mode de paiement</div>
+  <select class="delivery-select" id="global-payment" onchange="paymentMode=this.value;update()" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);background:var(--white);outline:none;cursor:pointer;transition:border-color .15s,box-shadow .15s;">
+  </select>
+
   <div class="sec" id="sec-note">Note personnalisée</div>
   <textarea id="customNote" oninput="update()" placeholder="ex: Livraison prévue en juin..."></textarea>
 
@@ -295,6 +299,7 @@ const TAG_SHELF={fr:'Tablette incluse',de:'Ablage inklusive',en:'Shelf included'
 const TAG_GLASS={fr:'Fond vitré',de:'Glasrückwand',en:'Glass back',nl:'Glazen achterwand',it:'Parete in vetro',es:'Fondo de vidrio',ch:'Fond vitré',chde:'Glasrückwand'};
 const TAG_FELT={fr:'Fond feutré',de:'Filzrückwand',en:'Felt back',nl:'Vilten achterwand',it:'Parete in feltro',es:'Fondo de fieltro',ch:'Fond feutré',chde:'Filzrückwand'};
 const TAG_OR={fr:'ou',de:'oder',en:'or',nl:'of',it:'o',es:'o',ch:'ou',chde:'oder'};
+
 const DELIVERY_LABEL={fr:'Délai de livraison',de:'Lieferzeit',en:'Delivery time',nl:'Levertijd',it:'Tempi di consegna',es:'Plazo de entrega',ch:'Délai de livraison',chde:'Lieferzeit'};
 function getDefaultDelivery(key){const o=DELIVERY_OPTIONS[lang]||[];return key==='SOLO'?o[1]||o[0]:o[2]||o[1]||o[0];}
 
@@ -325,8 +330,60 @@ const UI = {
     footer:'<strong>Alle Preise in CHF, exkl. MwSt. (8.1% im Total enthalten).</strong> Ein Importkostenpauschale wird pro Bestellung erhoben. Unverbindliches Angebot — offizielle Auftragsbestätigung nach Bestätigung der Lieferadresse. Gültigkeit 14 Tage.',
     emailFn:(c,p,t)=>`Guten Tag${c?' '+c.split(' ')[0]:''},\n\nAnbei erhalten Sie unsere Produktdokumentation sowie ein erstes unverbindliches Angebot.\n${p}\n\n──────────────────────────\nGesamtbetrag (inkl. MwSt.): ${t}\n\nZahlung: vollständige Vorauszahlung.\n\n⚠ Für das offizielle Angebot benötigen wir:\n  → Vollständige Lieferadresse\n\nMit freundlichen Grüßen,`}
 };
+const PHONE={
+  fr:'+33 7 44 09 12 11',de:'+49 30 31193182',en:'+49 30 31193182',
+  nl:'+31 85 208 0005',it:'+39 02 8295 7802',es:'+34 604 56 52 20',
+  ch:'+41 22 518 63 60',chde:'+41 43 588 35 99'
+};
+const PAYMENT_LABEL={
+  fr:'Mode de paiement',de:'Zahlungsart',en:'Payment terms',
+  nl:'Betalingswijze',it:'Modalità di pagamento',es:'Forma de pago',
+  ch:'Mode de paiement',chde:'Zahlungsart'
+};
+const PAYMENT_OPTIONS={
+  fr:[
+    {id:'prepay',label:'Prépaiement intégral'},
+    {id:'half',  label:'Acompte 50 % — solde à 30 jours net'},
+    {id:'account',label:'Paiement à 30 jours net'}
+  ],
+  de:[
+    {id:'prepay',label:'Vollständige Vorauszahlung'},
+    {id:'half',  label:'50 % Anzahlung — Restzahlung 30 Tage netto'},
+    {id:'account',label:'Zahlung 30 Tage netto'}
+  ],
+  en:[
+    {id:'prepay',label:'Pre-Payment in Full'},
+    {id:'half',  label:'50% Down Payment — Balance Due 30 Days Net'},
+    {id:'account',label:'Purchase on Account — 30 Days Net'}
+  ],
+  nl:[
+    {id:'prepay',label:'Volledige vooruitbetaling'},
+    {id:'half',  label:'50 % aanbetaling — saldo 30 dagen netto'},
+    {id:'account',label:'Betaling 30 dagen netto'}
+  ],
+  it:[
+    {id:'prepay',label:'Pagamento anticipato integrale'},
+    {id:'half',  label:'Acconto 50 % — saldo a 30 giorni netti'},
+    {id:'account',label:'Pagamento a 30 giorni netti'}
+  ],
+  es:[
+    {id:'prepay',label:'Pago anticipado íntegro'},
+    {id:'half',  label:'Anticipo 50 % — saldo a 30 días neto'},
+    {id:'account',label:'Pago a 30 días neto'}
+  ],
+  ch:[
+    {id:'prepay',label:'Prépaiement intégral'},
+    {id:'half',  label:'Acompte 50 % — solde à 30 jours net'},
+    {id:'account',label:'Paiement à 30 jours net'}
+  ],
+  chde:[
+    {id:'prepay',label:'Vollständige Vorauszahlung'},
+    {id:'half',  label:'50 % Anzahlung — Restzahlung 30 Tage netto'},
+    {id:'account',label:'Zahlung 30 Tage netto'}
+  ]
+};
 // ── STATE ──────────────────────────────────────────────────
-let lang='fr', lines=[], modalSel=null;
+let lang='fr', lines=[], modalSel=null, paymentMode='prepay';
 const today=new Date();
 document.getElementById('quoteDate').value=today.toLocaleDateString('fr-FR');
 
@@ -341,8 +398,13 @@ function applyUI(){
   for(const [id,key] of Object.entries(ids)){const el=document.getElementById(id);if(el)el.textContent=u[key];}
   document.getElementById('disclaimer').innerHTML=u.disclaimer;
   document.getElementById('customNote').placeholder=u.notePH;
+
   const secDel=document.getElementById('sec-delivery');
   if(secDel)secDel.textContent=DELIVERY_LABEL[lang];
+  const secPay=document.getElementById('sec-payment');
+  if(secPay)secPay.textContent=PAYMENT_LABEL[lang];
+  const paysel=document.getElementById('global-payment');
+  if(paysel){const popts=PAYMENT_OPTIONS[lang]||PAYMENT_OPTIONS['en'];paysel.innerHTML=popts.map(o=>`<option value="${o.id}" ${o.id===paymentMode?'selected':''}>${o.label}</option>`).join('');}
   const sel=document.getElementById('global-delivery');
   if(sel){
     const current=sel.value;
@@ -532,6 +594,9 @@ function makeRef(){const co=document.getElementById('company').value.trim(),seed
 function update(){
   const u=UI[lang],co=document.getElementById('company').value.trim(),contact=document.getElementById('contact').value.trim(),date=document.getElementById('quoteDate').value.trim(),note=document.getElementById('customNote').value.trim(),container=document.getElementById('quote-doc');
   if(!co||!lines.length){container.innerHTML=`<div class="empty"><div class="empty-icon">📄</div><h3>${u.emptyH3}</h3><p>${u.emptyP}</p></div>`;return;}
+  const _payOpts=PAYMENT_OPTIONS[lang]||PAYMENT_OPTIONS['en'];
+  const _foundPay=_payOpts.find(o=>o.id===paymentMode);
+  const _payLabel=_foundPay?_foundPay.label:(_payOpts[0]?_payOpts[0].label:'');
   const data=computeAll(),multiLine=data.groups.length>1;
   let tableHtml='';
   data.groups.forEach(g=>{
@@ -561,11 +626,11 @@ function update(){
     </div>
     <div class="doc-body">
       <div class="doc-parties">
-        <div class="party"><h4>${u.from}</h4><div class="party-name">mute-labs GmbH</div><div class="party-detail">Torstraße 164 · 10115 Berlin<br>info@mute-labs.com<br>+33 7 44 09 10 70</div></div>
+        <div class="party"><h4>${u.from}</h4><div class="party-name">mute-labs GmbH</div><div class="party-detail">Torstraße 164 · 10115 Berlin<br>info@mute-labs.com<br>${PHONE[lang]||'${PHONE[lang]||PHONE.fr}'}</div></div>
         <div class="party"><h4>${u.to}</h4><div class="party-name">${co}</div><div class="party-detail">${contact?contact+'<br>':''}<span style="color:var(--amber);font-size:11px;">${u.warning}</span></div></div>
       </div>
       <div class="conditions-bar">
-        <div class="cond-item"><div class="cond-label">${u.condPayment}</div><div class="cond-val">${u.condPayVal}</div></div>
+        <div class="cond-item"><div class="cond-label">${u.condPayment}</div><div class="cond-val">${_payLabel}</div></div>
         <div class="cond-item"><div class="cond-label">${u.condDelivery}</div><div class="cond-val">${delivWeeks}</div></div>
         <div class="cond-item"><div class="cond-label">${u.condOrigin}</div><div class="cond-val">${u.condOriginVal}</div></div>
       </div>
@@ -596,8 +661,13 @@ function setLang(l,btn){
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   // Refresh global delivery options for new language
+  const paysel2=document.getElementById('global-payment');
+  if(paysel2){paysel2.innerHTML=(PAYMENT_OPTIONS[l]||[]).map((o,i)=>`<option value="${o}" ${i===0?'selected':''}>${o}</option>`).join('');}
   const sel=document.getElementById('global-delivery');
   if(sel){sel.innerHTML=(DELIVERY_OPTIONS[l]||DELIVERY_OPTIONS['fr']).map((o,i)=>`<option value="${o}" ${i===1?'selected':''}>${o}</option>`).join('');}
+  paymentMode='prepay';
+  const ps=document.getElementById('global-payment');
+  if(ps){const po=PAYMENT_OPTIONS[l]||PAYMENT_OPTIONS['en'];ps.innerHTML=po.map(o=>`<option value="${o.id}" ${o.id==='prepay'?'selected':''}>${o.label}</option>`).join('');}
   applyUI();renderLines();update();
   const pdfBtn=document.getElementById('btn-pdf');
   if(pdfBtn)pdfBtn.textContent=PDF_LABELS[l]||PDF_LABELS['en'];

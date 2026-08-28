@@ -251,11 +251,11 @@ const CATALOG = {
   },
   it:{
     SOLO:{name:'SOLO',fullName:'Cabina ufficio SOLO',desc:'Cabina acustica individuale — 1 persona',basePrice:2990,delivery:'3–4 settimane',
-      options:[{id:'stool',label:'Sgabello (opzionale)',price:300,locked:false,perUnit:true},{id:'assembly',label:'Montaggio (opzionale)',price:400,locked:false,perUnit:true},{id:'delivery',label:'Consegna',price:400,locked:true,perUnit:true},{id:'islands',label:'Supplemento isole italiane',price:250,locked:false,perUnit:false}]},
+      options:[{id:'stool',label:'Sgabello (opzionale)',price:300,locked:false,perUnit:true},{id:'assembly',label:'Montaggio (opzionale)',price:400,locked:false,perUnit:true},{id:'delivery',label:'Consegna',price:400,locked:true,perUnit:true},{id:'islands',label:'Supplemento isole italiane',price:250,locked:false,perUnit:true}]},
     QUATTRO:{name:'QUATTRO',fullName:'Cabina riunione QUATTRO',desc:'Cabina acustica per riunioni — 2–4 persone',basePrice:8490,delivery:'4–6 settimane',
-      options:[{id:'benches',label:'Set di 2 panche (Opzionale)',price:600,locked:false,perUnit:true},{id:'screen',label:'Sostegno per monitor (Opzionale)',price:400,locked:false,perUnit:true},{id:'assembly',label:'Montaggio',price:800,locked:true,perUnit:true},{id:'delivery',label:'Consegna',price:800,locked:true,perUnit:true},{id:'islands',label:'Supplemento isole italiane',price:400,locked:false,perUnit:false}]},
+      options:[{id:'benches',label:'Set di 2 panche (Opzionale)',price:600,locked:false,perUnit:true},{id:'screen',label:'Sostegno per monitor (Opzionale)',price:400,locked:false,perUnit:true},{id:'assembly',label:'Montaggio',price:800,locked:true,perUnit:true},{id:'delivery',label:'Consegna',price:800,locked:true,perUnit:true},{id:'islands',label:'Supplemento isole italiane',price:400,locked:false,perUnit:true}]},
     DEEPWORK:{name:'DEEPWORK',fullName:'Cabina ufficio DEEPWORK',desc:'Cabina acustica focus — 1 persona',basePrice:8490,delivery:'4–6 settimane',
-      options:[{id:'assembly',label:'Montaggio',price:800,locked:true,perUnit:true},{id:'delivery',label:'Consegna',price:800,locked:true,perUnit:true},{id:'islands',label:'Supplemento isole italiane',price:400,locked:false,perUnit:false}]}
+      options:[{id:'assembly',label:'Montaggio',price:800,locked:true,perUnit:true},{id:'delivery',label:'Consegna',price:800,locked:true,perUnit:true},{id:'islands',label:'Supplemento isole italiane',price:400,locked:false,perUnit:true}]}
   },
   es:{
     SOLO:{name:'SOLO',fullName:'Cabina telefónica SOLO',desc:'Cabina acústica individual — 1 persona',basePrice:2990,delivery:'2–3 semanas',
@@ -464,6 +464,8 @@ function renderLines(){
         }
         return '<div class="option-row locked-on"><div class="opt-left"><div class="opt-check"></div><span class="opt-label">'+opt.label+'</span><span class="opt-req" style="margin-left:5px;">'+u.mandatory+'</span></div><div style="display:flex;align-items:center;gap:6px;"><span style="font-size:11px;color:var(--muted);">×'+oqty+'</span><span class="opt-price">'+fmtI(round2(opt.price*oqty))+'</span></div></div>';
       } else {
+        if(opt.perUnit===false){
+          return '<div class="option-row active" style="cursor:pointer;" onclick="toggleOpt('+idx+',\''+opt.id+'\')"><div class="opt-left"><div class="opt-check"></div><span class="opt-label">'+opt.label+'</span></div><span class="opt-price">'+fmtI(opt.price)+'</span></div>';}
         const oqty=(line.optQtys&&line.optQtys[opt.id]!=null)?line.optQtys[opt.id]:line.qty;
         return '<div class="option-row active" style="cursor:pointer;" onclick="toggleOpt('+idx+',\''+opt.id+'\')"><div class="opt-left"><div class="opt-check"></div><span class="opt-label">'+opt.label+'</span></div>'
           +'<div style="display:flex;align-items:center;gap:5px;" onclick="event.stopPropagation()">'

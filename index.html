@@ -603,11 +603,19 @@ function computeAll(){
       let volDiscTotal=null;
       if(volumeDiscountActive&&opt.id==='delivery'&&!isCH){
         const matrix=line.productKey==='SOLO'?(VOLUME_DELIVERY_SOLO[lang]||null):(VOLUME_DELIVERY_Q4DW[lang]||null);
-        if(matrix){volDiscTotal=matrix[Math.min(oqty,10)-1];optPrice=round2(volDiscTotal/oqty);}
+        if(matrix) volDiscTotal=matrix[Math.min(oqty,10)-1];
       }
-      const t=volDiscTotal!==null?volDiscTotal:round2(optPrice*oqty);
-      grandHT=round2(grandHT+t);
-      rows.push({name:opt.label,unitPrice:optPrice,qty:oqty,total:t,type:'opt',locked:opt.locked});
+      if(volDiscTotal!==null){
+        const fullTotal=round2(optPrice*oqty);
+        const saving=round2(fullTotal-volDiscTotal);
+        grandHT=round2(grandHT+volDiscTotal);
+        rows.push({name:opt.label,unitPrice:optPrice,qty:oqty,total:fullTotal,type:'opt',locked:opt.locked});
+        rows.push({name:VOL_DISC_LABEL[lang]||'Volume delivery discount',saving,type:'vol-disc'});
+      }else{
+        const t=round2(optPrice*oqty);
+        grandHT=round2(grandHT+t);
+        rows.push({name:opt.label,unitPrice:optPrice,qty:oqty,total:t,type:'opt',locked:opt.locked});
+      }
     });
     if(prod.importFee)groups_importFees.push({fee:prod.importFee,prod});
     groups.push({lineIdx:idx,prod,rows,disc});
@@ -641,6 +649,8 @@ function update(){
         const dH=row.discAmt>0?`<br><span class="tag-disc">−${fmtI(row.discAmt)}${row.disc>0&&row.disc%1<0.01?' ('+Math.round(row.disc)+'%)':''}</span><br><strong>${fmtI(row.netUnit)}</strong>`:'';
         const _or=TAG_OR[lang]||'/';const tagH=row.productKey==='SOLO'?`<div style="margin-top:3px;"><span class="tag-incl">${TAG_SHELF[lang]||''}</span></div>`:row.productKey==='QUATTRO'?`<div style="margin-top:3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><span class="tag-incl">${u.tagTable}</span><span class="tag-incl">${TAG_GLASS[lang]||''}</span><span style="font-size:9px;color:#9BB5AE;font-weight:600;">${_or}</span><span class="tag-incl">${TAG_FELT[lang]||''}</span></div>`:row.productKey==='DEEPWORK'?`<div style="margin-top:3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><span class="tag-incl">${u.tagDesk}</span><span class="tag-incl">${TAG_GLASS[lang]||''}</span><span style="font-size:9px;color:#9BB5AE;font-weight:600;">${_or}</span><span class="tag-incl">${TAG_FELT[lang]||''}</span></div>`:'';
         tableHtml+=`<tr><td><div class="item-name">${row.name}</div><div class="item-desc">${row.desc}</div>${tagH}</td><td class="mono">${fmtI(row.listPrice)}${dH}</td><td class="mono">${row.qty}</td><td class="mono"><strong>${fmtN(row.total)}</strong></td></tr>`;
+      }else if(row.type==='vol-disc'){
+        tableHtml+=`<tr style="background:#EEF7F3;"><td colspan="3"><div class="item-name" style="color:#4E6B62;font-style:italic;">${row.name}</div></td><td class="mono" style="color:#4E6B62;font-weight:700;">−${fmtN(row.saving)}</td></tr>`;
       }else if(row.type==='import'){
         tableHtml+=`<tr style="background:#FFF8ED;"><td><div class="item-name" style="color:#C8870A;">${row.name}</div></td><td class="mono" style="color:#C8870A;">${fmtI(row.unitPrice)}</td><td class="mono" style="color:#C8870A;">${row.qty}</td><td class="mono" style="color:#C8870A;font-weight:600;">${fmtN(row.total)}</td></tr>`;
       }else{

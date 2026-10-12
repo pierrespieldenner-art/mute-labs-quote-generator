@@ -181,6 +181,10 @@
   <div class="sec" id="sec-delivery">Délai de livraison</div>
   <select class="delivery-select" id="global-delivery" onchange="update()" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);background:var(--white);outline:none;cursor:pointer;transition:border-color .15s,box-shadow .15s;">
   </select>
+  <div id="vol-disc-wrap" style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+    <input type="checkbox" id="vol-disc-cb" onchange="volumeDiscountActive=this.checked;update()" style="width:15px;height:15px;cursor:pointer;accent-color:var(--sage);flex-shrink:0;">
+    <label id="lbl-vol-disc" for="vol-disc-cb" style="margin:0;cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);">Remise volume livraison</label>
+  </div>
 
   <div class="sec" id="sec-payment">Mode de paiement</div>
   <select class="delivery-select" id="global-payment" onchange="paymentMode=this.value;update()" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);background:var(--white);outline:none;cursor:pointer;transition:border-color .15s,box-shadow .15s;">
@@ -301,6 +305,26 @@ const TAG_FELT={fr:'Fond feutré',de:'Filzrückwand',en:'Felt back',nl:'Vilten a
 const TAG_OR={fr:'ou',de:'oder',en:'or',nl:'of',it:'o',es:'o',ch:'ou',chde:'oder'};
 
 const DELIVERY_LABEL={fr:'Délai de livraison',de:'Lieferzeit',en:'Delivery time',nl:'Levertijd',it:'Tempi di consegna',es:'Plazo de entrega',ch:'Délai de livraison',chde:'Lieferzeit'};
+const VOLUME_DELIVERY_SOLO={
+  fr:[300,521,743,837,1024,1048,1024,1048,1021,1019],
+  de:[400,721,1043,1237,1524,1648,1724,1848,1921,2019],
+  en:[400,721,1043,1237,1524,1648,1724,1848,1921,2019],
+  nl:[400,721,1043,1237,1524,1648,1724,1848,1921,2019],
+  it:[400,721,1043,1237,1524,1648,1724,1848,1921,2019],
+  es:[440,801,1163,1397,1724,1888,2004,2168,2281,2419],
+  ch:null,chde:null
+};
+const VOLUME_DELIVERY_Q4DW={
+  fr:[700,1202,1603,2048,2504,2702,3096,3143,3497,3404],
+  de:[700,1202,1603,2048,2504,2702,3096,3143,3497,3404],
+  en:[700,1202,1603,2048,2504,2702,3096,3143,3497,3404],
+  nl:[700,1202,1603,2048,2504,2702,3096,3143,3497,3404],
+  it:[800,1402,1903,2448,3004,3302,3796,3943,4397,4404],
+  es:[800,1402,1903,2448,3004,3302,3796,3943,4397,4404],
+  ch:null,chde:null
+};
+const VOL_DISC_LABEL={fr:'Remise volume livraison',de:'Mengenrabatt Lieferung',en:'Volume delivery discount',nl:'Volumekorting levering',it:'Sconto volume consegna',es:'Descuento volumen envío',ch:'Remise volume livraison',chde:'Mengenrabatt Lieferung'};
+
 function getDefaultDelivery(key){const o=DELIVERY_OPTIONS[lang]||[];return key==='SOLO'?o[1]||o[0]:o[2]||o[1]||o[0];}
 
 // ── UI STRINGS ─────────────────────────────────────────────
@@ -383,7 +407,7 @@ const PAYMENT_OPTIONS={
   ]
 };
 // ── STATE ──────────────────────────────────────────────────
-let lang='fr', lines=[], modalSel=null, paymentMode='prepay';
+let lang='fr', lines=[], modalSel=null, paymentMode='prepay', volumeDiscountActive=false;
 const today=new Date();
 document.getElementById('quoteDate').value=today.toLocaleDateString('fr-FR');
 
@@ -403,6 +427,10 @@ function applyUI(){
   if(secDel)secDel.textContent=DELIVERY_LABEL[lang];
   const secPay=document.getElementById('sec-payment');
   if(secPay)secPay.textContent=PAYMENT_LABEL[lang];
+  const lblVol=document.getElementById('lbl-vol-disc');
+  if(lblVol)lblVol.textContent=VOL_DISC_LABEL[lang]||VOL_DISC_LABEL['en'];
+  const volWrap=document.getElementById('vol-disc-wrap');
+  if(volWrap)volWrap.style.display=(lang==='ch'||lang==='chde')?'none':'flex';
   const paysel=document.getElementById('global-payment');
   if(paysel){const popts=PAYMENT_OPTIONS[lang]||PAYMENT_OPTIONS['en'];paysel.innerHTML=popts.map(o=>`<option value="${o.id}" ${o.id===paymentMode?'selected':''}>${o.label}</option>`).join('');}
   const sel=document.getElementById('global-delivery');
@@ -570,9 +598,14 @@ function computeAll(){
     let rows=[{name:prod.fullName,desc:prod.desc,productKey:line.productKey,discAmt:discPU,disc,listPrice:prod.basePrice,netUnit,qty:line.qty,total:baseTotal,type:'base'}];
     prod.options.forEach(opt=>{
       if(!line.opts.has(opt.id))return;
-      const oqty=opt.perUnit===false?1:(opt.locked?line.qty:((line.optQtys&&line.optQtys[opt.id]!=null)?line.optQtys[opt.id]:line.qty));
-      const optPrice=(line.optPrices&&line.optPrices[opt.id]!=null)?line.optPrices[opt.id]:opt.price;
-      const t=round2(optPrice*oqty);
+      let oqty=opt.perUnit===false?1:(opt.locked?line.qty:((line.optQtys&&line.optQtys[opt.id]!=null)?line.optQtys[opt.id]:line.qty));
+      let optPrice=(line.optPrices&&line.optPrices[opt.id]!=null)?line.optPrices[opt.id]:opt.price;
+      let volDiscTotal=null;
+      if(volumeDiscountActive&&opt.id==='delivery'&&!isCH){
+        const matrix=line.productKey==='SOLO'?(VOLUME_DELIVERY_SOLO[lang]||null):(VOLUME_DELIVERY_Q4DW[lang]||null);
+        if(matrix){volDiscTotal=matrix[Math.min(oqty,10)-1];optPrice=round2(volDiscTotal/oqty);}
+      }
+      const t=volDiscTotal!==null?volDiscTotal:round2(optPrice*oqty);
       grandHT=round2(grandHT+t);
       rows.push({name:opt.label,unitPrice:optPrice,qty:oqty,total:t,type:'opt',locked:opt.locked});
     });
